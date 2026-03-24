@@ -10,19 +10,19 @@ import (
 
 // Score 安全评分项
 type Score struct {
-	Name    string `json:"name"`
-	GLPass  bool   `json:"gl_pass"`  // GoldLion 是否通过
-	OCPass  bool   `json:"oc_pass"`  // OpenClaw 是否通过
-	Weight  int    `json:"weight"`   // 权重 1-10
+	Name   string `json:"name"`
+	GLPass bool   `json:"gl_pass"` // GoldLion 是否通过
+	OCPass bool   `json:"oc_pass"` // OpenClaw 是否通过
+	Weight int    `json:"weight"`  // 权重 1-10
 }
 
 // Card 安全评分卡
 type Card struct {
-	GLScore  int     `json:"gl_score"`
-	OCScore  int     `json:"oc_score"`
-	GLGrade  string  `json:"gl_grade"`
-	OCGrade  string  `json:"oc_grade"`
-	Items    []Score `json:"items"`
+	GLScore int     `json:"gl_score"`
+	OCScore int     `json:"oc_score"`
+	GLGrade string  `json:"gl_grade"`
+	OCGrade string  `json:"oc_grade"`
+	Items   []Score `json:"items"`
 }
 
 // Generate 生成安全评分卡

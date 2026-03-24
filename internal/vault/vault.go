@@ -24,10 +24,10 @@ type Vault interface {
 // FileVault 基于文件的加密 Vault
 // 使用 AES-256-GCM 加密，主密钥从 OS Keychain 获取
 type FileVault struct {
-	path   string
-	key    []byte // AES-256 主密钥（32 bytes）
-	data   map[string][]byte
-	mu     sync.RWMutex
+	path string
+	key  []byte // AES-256 主密钥（32 bytes）
+	data map[string][]byte
+	mu   sync.RWMutex
 }
 
 // NewFileVault 创建或打开 Vault

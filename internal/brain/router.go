@@ -11,13 +11,13 @@ import (
 
 // DefaultRouter 智能模型路由器
 type DefaultRouter struct {
-	cfg         *config.Config
-	cost        CostTracker
-	logger      *slog.Logger
-	localSmall  LLMProvider
-	localLarge  LLMProvider
-	cloud       LLMProvider
-	cloudModel  string
+	cfg        *config.Config
+	cost       CostTracker
+	logger     *slog.Logger
+	localSmall LLMProvider
+	localLarge LLMProvider
+	cloud      LLMProvider
+	cloudModel string
 }
 
 func NewRouter(cfg *config.Config, cost CostTracker, logger *slog.Logger) (*DefaultRouter, error) {

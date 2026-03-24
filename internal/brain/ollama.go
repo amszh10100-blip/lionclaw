@@ -31,10 +31,10 @@ func (o *OllamaProvider) IsLocal() bool { return true }
 
 // ollamaChatReq Ollama /api/chat 请求格式
 type ollamaChatReq struct {
-	Model    string             `json:"model"`
-	Messages []ollamaChatMsg    `json:"messages"`
-	Stream   bool               `json:"stream"`
-	Options  map[string]any     `json:"options,omitempty"`
+	Model    string          `json:"model"`
+	Messages []ollamaChatMsg `json:"messages"`
+	Stream   bool            `json:"stream"`
+	Options  map[string]any  `json:"options,omitempty"`
 }
 
 type ollamaChatMsg struct {

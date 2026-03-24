@@ -58,12 +58,18 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 
 	localToday, cloudToday := 0, 0
 	for _, r := range todayRecords {
-		if r.IsLocal { localToday++ } else { cloudToday++ }
+		if r.IsLocal {
+			localToday++
+		} else {
+			cloudToday++
+		}
 	}
 
 	localMonth := 0
 	for _, r := range monthRecords {
-		if r.IsLocal { localMonth++ }
+		if r.IsLocal {
+			localMonth++
+		}
 	}
 
 	localPct := 0.0

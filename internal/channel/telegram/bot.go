@@ -113,11 +113,11 @@ type tgUser struct {
 }
 
 type tgMessage struct {
-	MessageID int64    `json:"message_id"`
-	From      *tgUser  `json:"from"`
-	Chat      tgChat   `json:"chat"`
-	Text      string   `json:"text"`
-	Date      int64    `json:"date"`
+	MessageID int64   `json:"message_id"`
+	From      *tgUser `json:"from"`
+	Chat      tgChat  `json:"chat"`
+	Text      string  `json:"text"`
+	Date      int64   `json:"date"`
 }
 
 type tgChat struct {

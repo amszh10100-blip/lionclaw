@@ -29,10 +29,10 @@ func (a *AnthropicProvider) Name() string  { return "anthropic" }
 func (a *AnthropicProvider) IsLocal() bool { return false }
 
 type anthropicReq struct {
-	Model     string            `json:"model"`
-	MaxTokens int               `json:"max_tokens"`
-	System    string            `json:"system,omitempty"`
-	Messages  []anthropicMsg    `json:"messages"`
+	Model     string         `json:"model"`
+	MaxTokens int            `json:"max_tokens"`
+	System    string         `json:"system,omitempty"`
+	Messages  []anthropicMsg `json:"messages"`
 }
 
 type anthropicMsg struct {
@@ -53,9 +53,9 @@ type anthropicResp struct {
 
 // 价格表（每百万 token 美元）
 var anthropicPricing = map[string][2]float64{
-	"claude-opus-4-6":             {15.0, 75.0},
-	"claude-sonnet-4-6":           {3.0, 15.0},
-	"claude-3-7-sonnet-20250219":  {3.0, 15.0},
+	"claude-opus-4-6":            {15.0, 75.0},
+	"claude-sonnet-4-6":          {3.0, 15.0},
+	"claude-3-7-sonnet-20250219": {3.0, 15.0},
 }
 
 func (a *AnthropicProvider) Chat(ctx context.Context, req ChatRequest) (*ChatResponse, error) {

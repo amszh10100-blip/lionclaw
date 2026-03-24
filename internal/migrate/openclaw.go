@@ -16,10 +16,10 @@ import (
 
 // Result 迁移结果
 type Result struct {
-	MemoryEntries int      `json:"memory_entries"`
-	SkillsMigrated int     `json:"skills_migrated"`
-	SkillsSkipped  int     `json:"skills_skipped"`
-	ConfigMigrated bool    `json:"config_migrated"`
+	MemoryEntries  int      `json:"memory_entries"`
+	SkillsMigrated int      `json:"skills_migrated"`
+	SkillsSkipped  int      `json:"skills_skipped"`
+	ConfigMigrated bool     `json:"config_migrated"`
 	SecurityFixes  []string `json:"security_fixes"`
 	Warnings       []string `json:"warnings"`
 }

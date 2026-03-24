@@ -10,11 +10,11 @@ import (
 
 // Config 是 GoldLion 的顶级配置结构
 type Config struct {
-	Channels ChannelsConfig `yaml:"channels"`
-	Models   ModelsConfig   `yaml:"models"`
-	Routing  RoutingConfig  `yaml:"routing"`
-	Cost     CostConfig     `yaml:"cost"`
-	Security SecurityConfig `yaml:"security"`
+	Channels  ChannelsConfig            `yaml:"channels"`
+	Models    ModelsConfig              `yaml:"models"`
+	Routing   RoutingConfig             `yaml:"routing"`
+	Cost      CostConfig                `yaml:"cost"`
+	Security  SecurityConfig            `yaml:"security"`
 	Scenarios map[string]ScenarioConfig `yaml:"scenarios"`
 }
 

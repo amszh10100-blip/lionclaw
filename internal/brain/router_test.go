@@ -17,19 +17,23 @@ func newTestRouter() *DefaultRouter {
 
 // mockCostTracker 测试用成本追踪
 type mockCostTracker struct {
-	budget   Budget
-	total    float64
-	records  []CostRecord
+	budget  Budget
+	total   float64
+	records []CostRecord
 }
 
-func (m *mockCostTracker) Record(r CostRecord) error          { m.records = append(m.records, r); m.total += r.CostUSD; return nil }
+func (m *mockCostTracker) Record(r CostRecord) error {
+	m.records = append(m.records, r)
+	m.total += r.CostUSD
+	return nil
+}
 func (m *mockCostTracker) GetToday() (float64, []CostRecord, error) { return m.total, m.records, nil }
 func (m *mockCostTracker) GetMonth() (float64, []CostRecord, error) { return m.total, m.records, nil }
 func (m *mockCostTracker) CheckBudget(est float64) (bool, float64, error) {
 	remaining := m.budget.DailyLimitUSD - m.total
 	return remaining > est, remaining, nil
 }
-func (m *mockCostTracker) GetBudget() Budget      { return m.budget }
+func (m *mockCostTracker) GetBudget() Budget        { return m.budget }
 func (m *mockCostTracker) SetBudget(b Budget) error { m.budget = b; return nil }
 
 func TestAssessComplexity_Greeting(t *testing.T) {

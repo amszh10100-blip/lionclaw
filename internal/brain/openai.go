@@ -31,8 +31,8 @@ func (o *OpenAIProvider) Name() string  { return "openai" }
 func (o *OpenAIProvider) IsLocal() bool { return false }
 
 type openaiReq struct {
-	Model    string       `json:"model"`
-	Messages []openaiMsg  `json:"messages"`
+	Model    string      `json:"model"`
+	Messages []openaiMsg `json:"messages"`
 }
 
 type openaiMsg struct {

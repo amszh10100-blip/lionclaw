@@ -12,12 +12,12 @@ import (
 
 // Job 定时任务
 type Job struct {
-	Name     string        `json:"name"`
-	Cron     string        `json:"cron"`     // 简化 cron: "HH:MM" 或 "*/N" (每 N 分钟)
-	Prompt   string        `json:"prompt"`   // 要发给 LLM 的提示
-	ChatID   string        `json:"chat_id"`  // 目标聊天
-	Enabled  bool          `json:"enabled"`
-	LastRun  time.Time     `json:"last_run"`
+	Name    string    `json:"name"`
+	Cron    string    `json:"cron"`    // 简化 cron: "HH:MM" 或 "*/N" (每 N 分钟)
+	Prompt  string    `json:"prompt"`  // 要发给 LLM 的提示
+	ChatID  string    `json:"chat_id"` // 目标聊天
+	Enabled bool      `json:"enabled"`
+	LastRun time.Time `json:"last_run"`
 }
 
 // Handler 任务执行回调

@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/goldlion/goldlion/internal/config"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // SQLiteCostTracker 基于 SQLite 的成本追踪

@@ -110,7 +110,7 @@ func cmdStart() {
 
 func cmdSetup() {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("🦁 GoldLion 交互式配置\n")
+	fmt.Println("🦁 GoldLion 交互式配置")
 
 	cfg := config.DefaultConfig()
 
@@ -364,7 +364,7 @@ func cmdMigrate() {
 		ocDir = os.Args[2]
 	}
 
-	fmt.Println("🦁 OpenClaw → GoldLion 迁移工具\n")
+	fmt.Println("🦁 OpenClaw → GoldLion 迁移工具")
 	fmt.Printf("   源目录: %s\n\n", ocDir)
 
 	result, err := migrate.OpenClaw(ocDir, logger)

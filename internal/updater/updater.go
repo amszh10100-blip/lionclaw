@@ -27,10 +27,10 @@ func NewUpdater(installDir string, logger *slog.Logger) *Updater {
 
 // CheckResult 版本检查结果
 type CheckResult struct {
-	CurrentVersion string `json:"current"`
-	LatestVersion  string `json:"latest"`
-	UpdateAvailable bool  `json:"update_available"`
-	DownloadURL    string `json:"download_url"`
+	CurrentVersion  string `json:"current"`
+	LatestVersion   string `json:"latest"`
+	UpdateAvailable bool   `json:"update_available"`
+	DownloadURL     string `json:"download_url"`
 }
 
 // HealthCheck 健康检查项

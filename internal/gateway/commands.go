@@ -227,12 +227,20 @@ func (gw *Gateway) cmdStats(msg channel.Message) {
 
 	localToday, cloudToday := 0, 0
 	for _, r := range todayRecords {
-		if r.IsLocal { localToday++ } else { cloudToday++ }
+		if r.IsLocal {
+			localToday++
+		} else {
+			cloudToday++
+		}
 	}
 
 	localMonth, cloudMonth := 0, 0
 	for _, r := range monthRecords {
-		if r.IsLocal { localMonth++ } else { cloudMonth++ }
+		if r.IsLocal {
+			localMonth++
+		} else {
+			cloudMonth++
+		}
 	}
 
 	// 估算节省时间（每次对话约省 2 分钟人工时间）
@@ -260,7 +268,9 @@ func (gw *Gateway) cmdStats(msg channel.Message) {
 }
 
 func safePercent(part, total int) float64 {
-	if total == 0 { return 0 }
+	if total == 0 {
+		return 0
+	}
 	return float64(part) / float64(total) * 100
 }
 
@@ -361,7 +371,7 @@ func (gw *Gateway) cmdEnableScenario(msg channel.Message, name string, enable bo
 			prompt: "请给出一条高效会议的建议或技巧。",
 		},
 		"weekly_report": {
-			cron:   "09:00",  // 周日 9:00（调度器暂不支持周粒度，先每天）
+			cron:   "09:00", // 周日 9:00（调度器暂不支持周粒度，先每天）
 			prompt: "生成本周 AI 助手使用价值报告：总结对话数量、节省时间、花费成本，给出一句鼓励的话。",
 		},
 	}

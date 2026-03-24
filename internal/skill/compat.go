@@ -9,7 +9,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// ConvertOpenClawSkill 将 OpenClaw SKILL.md 转换为 GoldLion skill.yaml
+// ConvertOpenClawSkill 将 OpenClaw SKILL.md 转换为 LionClaw skill.yaml
 func ConvertOpenClawSkill(ocSkillDir string) (*Manifest, error) {
 	skillMD := filepath.Join(ocSkillDir, "SKILL.md")
 	data, err := os.ReadFile(skillMD)
@@ -82,7 +82,7 @@ func BatchConvert(ocSkillsDir, glSkillsDir string) (converted, skipped int, erro
 			continue
 		}
 
-		// 写入 GoldLion 格式
+		// 写入 LionClaw 格式
 		destDir := filepath.Join(glSkillsDir, e.Name())
 		os.MkdirAll(destDir, 0700)
 

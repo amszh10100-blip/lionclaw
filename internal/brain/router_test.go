@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/goldlion/goldlion/internal/config"
+	"github.com/lionclaw/lionclaw/internal/config"
 )
 
 func newTestRouter() *DefaultRouter {

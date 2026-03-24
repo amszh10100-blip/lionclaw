@@ -8,7 +8,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Config 是 GoldLion 的顶级配置结构
+// Config 是 LionClaw 的顶级配置结构
 type Config struct {
 	Channels  ChannelsConfig            `yaml:"channels"`
 	Models    ModelsConfig              `yaml:"models"`
@@ -114,7 +114,7 @@ func DefaultConfig() *Config {
 // ConfigDir 返回配置目录路径
 func ConfigDir() string {
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".goldlion")
+	return filepath.Join(home, ".lionclaw")
 }
 
 // ConfigPath 返回配置文件路径
@@ -134,7 +134,7 @@ func Load() (*Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, fmt.Errorf("配置文件不存在: %s\n请先运行 `goldlion setup`", path)
+			return nil, fmt.Errorf("配置文件不存在: %s\n请先运行 `lionclaw setup`", path)
 		}
 		return nil, fmt.Errorf("读取配置失败: %w", err)
 	}

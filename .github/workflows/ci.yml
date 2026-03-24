@@ -26,14 +26,14 @@ jobs:
         run: go mod download
 
       - name: Build
-        run: CGO_ENABLED=1 go build -tags "fts5" -o bin/goldlion ./cmd/goldlion
+        run: CGO_ENABLED=1 go build -tags "fts5" -o bin/lionclaw ./cmd/lionclaw
 
       - name: Test
         run: CGO_ENABLED=1 go test -tags "fts5" -race -coverprofile=coverage.out ./internal/...
 
       - name: Binary size check
         run: |
-          SIZE=$(du -m bin/goldlion | cut -f1)
+          SIZE=$(du -m bin/lionclaw | cut -f1)
           echo "Binary size: ${SIZE}MB"
           if [ "$SIZE" -gt 50 ]; then
             echo "❌ Binary too large (>50MB)"

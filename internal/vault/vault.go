@@ -181,7 +181,7 @@ func (v *FileVault) load() error {
 // getOrCreateMasterKey 从 OS Keychain 获取或生成主密钥
 func getOrCreateMasterKey() ([]byte, error) {
 	// 尝试从 Keychain 读取
-	key, err := keychainGet("goldlion", "master-key")
+	key, err := keychainGet("lionclaw", "master-key")
 	if err == nil && len(key) == 32 {
 		return key, nil
 	}
@@ -193,7 +193,7 @@ func getOrCreateMasterKey() ([]byte, error) {
 	}
 
 	// 存入 Keychain
-	if err := keychainSet("goldlion", "master-key", newKey); err != nil {
+	if err := keychainSet("lionclaw", "master-key", newKey); err != nil {
 		return nil, fmt.Errorf("存储密钥到 Keychain 失败: %w", err)
 	}
 

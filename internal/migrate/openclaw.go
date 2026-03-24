@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/goldlion/goldlion/internal/config"
-	"github.com/goldlion/goldlion/internal/memory"
-	"github.com/goldlion/goldlion/internal/vault"
+	"github.com/lionclaw/lionclaw/internal/config"
+	"github.com/lionclaw/lionclaw/internal/memory"
+	"github.com/lionclaw/lionclaw/internal/vault"
 )
 
 // Result 迁移结果
@@ -24,7 +24,7 @@ type Result struct {
 	Warnings       []string `json:"warnings"`
 }
 
-// OpenClaw 从 OpenClaw 安装迁移到 GoldLion
+// OpenClaw 从 OpenClaw 安装迁移到 LionClaw
 func OpenClaw(ocDir string, logger *slog.Logger) (*Result, error) {
 	result := &Result{}
 
@@ -67,7 +67,7 @@ func migrateMemory(wsDir string, result *Result, logger *slog.Logger) error {
 		return fmt.Errorf("MEMORY.md 不存在")
 	}
 
-	// 初始化 GoldLion 记忆存储
+	// 初始化 LionClaw 记忆存储
 	store, err := memory.NewSQLiteStore(config.DataDir())
 	if err != nil {
 		return err
@@ -221,7 +221,7 @@ func securityScan(ocDir string, result *Result, logger *slog.Logger) {
 	if data, err := os.ReadFile(cfgFile); err == nil {
 		if strings.Contains(string(data), "0.0.0.0") {
 			result.SecurityFixes = append(result.SecurityFixes,
-				"OpenClaw Gateway 绑定 0.0.0.0 → GoldLion 默认 127.0.0.1")
+				"OpenClaw Gateway 绑定 0.0.0.0 → LionClaw 默认 127.0.0.1")
 		}
 	}
 }
@@ -246,7 +246,7 @@ func migrateSkills(wsDir string, result *Result, logger *slog.Logger) {
 			continue
 		}
 
-		// 复制到 GoldLion skills 目录
+		// 复制到 LionClaw skills 目录
 		destDir := filepath.Join(glSkillDir, e.Name())
 		if err := copyDir(filepath.Join(skillDir, e.Name()), destDir); err != nil {
 			result.SkillsSkipped++

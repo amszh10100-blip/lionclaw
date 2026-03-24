@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/goldlion/goldlion/internal/channel"
+	"github.com/lionclaw/lionclaw/internal/channel"
 )
 
 // Bot Telegram Bot 实现

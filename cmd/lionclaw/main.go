@@ -12,13 +12,13 @@ import (
 	"log/slog"
 	"path/filepath"
 
-	"github.com/goldlion/goldlion/internal/brain"
-	"github.com/goldlion/goldlion/internal/config"
-	"github.com/goldlion/goldlion/internal/gateway"
-	"github.com/goldlion/goldlion/internal/migrate"
-	"github.com/goldlion/goldlion/internal/scorecard"
-	"github.com/goldlion/goldlion/internal/skill"
-	"github.com/goldlion/goldlion/internal/vault"
+	"github.com/lionclaw/lionclaw/internal/brain"
+	"github.com/lionclaw/lionclaw/internal/config"
+	"github.com/lionclaw/lionclaw/internal/gateway"
+	"github.com/lionclaw/lionclaw/internal/migrate"
+	"github.com/lionclaw/lionclaw/internal/scorecard"
+	"github.com/lionclaw/lionclaw/internal/skill"
+	"github.com/lionclaw/lionclaw/internal/vault"
 )
 
 const version = "0.1.0-dev"
@@ -37,7 +37,7 @@ func main() {
 	case "status":
 		cmdStatus()
 	case "version":
-		fmt.Printf("goldlion v%s\n", version)
+		fmt.Printf("lionclaw v%s\n", version)
 	case "skill":
 		cmdSkill()
 	case "vault":
@@ -53,10 +53,10 @@ func main() {
 }
 
 func printUsage() {
-	fmt.Printf(`🦁 GoldLion v%s — 安全的个人 AI Agent
+	fmt.Printf(`🦁 LionClaw v%s — 安全的个人 AI Agent
 
 Usage:
-  goldlion <command>
+  lionclaw <command>
 
 Commands:
   start     启动 Gateway
@@ -74,7 +74,7 @@ func cmdStart() {
 	cfg, err := config.Load()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "❌ 加载配置失败: %v\n", err)
-		fmt.Fprintf(os.Stderr, "   运行 `goldlion setup` 进行初始配置\n")
+		fmt.Fprintf(os.Stderr, "   运行 `lionclaw setup` 进行初始配置\n")
 		os.Exit(1)
 	}
 
@@ -93,11 +93,11 @@ func cmdStart() {
 
 	go func() {
 		<-sigCh
-		fmt.Println("\n🦁 正在关闭 GoldLion...")
+		fmt.Println("\n🦁 正在关闭 LionClaw...")
 		cancel()
 	}()
 
-	fmt.Printf("🦁 GoldLion v%s 启动中...\n", version)
+	fmt.Printf("🦁 LionClaw v%s 启动中...\n", version)
 	fmt.Printf("   绑定: %s:%d\n", cfg.Security.Bind, cfg.Security.Port)
 
 	if err := gw.Run(ctx); err != nil && ctx.Err() == nil {
@@ -105,12 +105,12 @@ func cmdStart() {
 		os.Exit(1)
 	}
 
-	fmt.Println("🦁 GoldLion 已停止")
+	fmt.Println("🦁 LionClaw 已停止")
 }
 
 func cmdSetup() {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("🦁 GoldLion 交互式配置")
+	fmt.Println("🦁 LionClaw 交互式配置")
 
 	cfg := config.DefaultConfig()
 
@@ -171,14 +171,14 @@ func cmdSetup() {
 	}
 
 	fmt.Printf("\n✅ 配置已保存到 %s\n", config.ConfigPath())
-	fmt.Println("\n🚀 运行 `goldlion start` 启动 Gateway")
+	fmt.Println("\n🚀 运行 `lionclaw start` 启动 Gateway")
 }
 
 func cmdStatus() {
-	fmt.Println("🦁 GoldLion 状态")
+	fmt.Println("🦁 LionClaw 状态")
 	cfg, err := config.Load()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "未配置。运行 `goldlion setup`\n")
+		fmt.Fprintf(os.Stderr, "未配置。运行 `lionclaw setup`\n")
 		return
 	}
 	fmt.Printf("   Telegram: %v\n", cfg.Channels.Telegram.Enabled)
@@ -190,7 +190,7 @@ func cmdStatus() {
 
 func cmdVault() {
 	if len(os.Args) < 3 {
-		fmt.Println("Usage: goldlion vault <set|get|list|delete> [key] [value]")
+		fmt.Println("Usage: lionclaw vault <set|get|list|delete> [key] [value]")
 		return
 	}
 
@@ -203,7 +203,7 @@ func cmdVault() {
 	switch os.Args[2] {
 	case "set":
 		if len(os.Args) < 5 {
-			fmt.Println("Usage: goldlion vault set <key> <value>")
+			fmt.Println("Usage: lionclaw vault set <key> <value>")
 			return
 		}
 		if err := v.Set(os.Args[3], []byte(os.Args[4])); err != nil {
@@ -224,7 +224,7 @@ func cmdVault() {
 
 	case "delete":
 		if len(os.Args) < 4 {
-			fmt.Println("Usage: goldlion vault delete <key>")
+			fmt.Println("Usage: lionclaw vault delete <key>")
 			return
 		}
 		if err := v.Delete(os.Args[3]); err != nil {
@@ -234,7 +234,7 @@ func cmdVault() {
 		fmt.Printf("✅ %s 已删除\n", os.Args[3])
 
 	default:
-		fmt.Println("Usage: goldlion vault <set|list|delete>")
+		fmt.Println("Usage: lionclaw vault <set|list|delete>")
 	}
 }
 
@@ -242,7 +242,7 @@ func cmdSkill() {
 	if len(os.Args) < 3 {
 		fmt.Println(`🦁 Skill 管理
 
-Usage: goldlion skill <command>
+Usage: lionclaw skill <command>
 
 Commands:
   create <name>   创建新 Skill 脚手架
@@ -256,7 +256,7 @@ Commands:
 	switch os.Args[2] {
 	case "create":
 		if len(os.Args) < 4 {
-			fmt.Println("用法: goldlion skill create <name>")
+			fmt.Println("用法: lionclaw skill create <name>")
 			return
 		}
 		name := os.Args[3]
@@ -270,7 +270,7 @@ Commands:
 		fmt.Printf("   ├── run.sh       (入口)\n")
 		fmt.Printf("   ├── test.sh      (测试)\n")
 		fmt.Printf("   └── README.md    (文档)\n")
-		fmt.Printf("\n编辑 run.sh 实现你的逻辑，然后 goldlion skill audit %s/%s\n", skillDir, name)
+		fmt.Printf("\n编辑 run.sh 实现你的逻辑，然后 lionclaw skill audit %s/%s\n", skillDir, name)
 
 	case "list":
 		entries, err := os.ReadDir(skillDir)
@@ -298,7 +298,7 @@ Commands:
 
 	case "audit":
 		if len(os.Args) < 4 {
-			fmt.Println("用法: goldlion skill audit <path>")
+			fmt.Println("用法: lionclaw skill audit <path>")
 			return
 		}
 		results, err := skill.Audit(os.Args[3])
@@ -364,7 +364,7 @@ func cmdMigrate() {
 		ocDir = os.Args[2]
 	}
 
-	fmt.Println("🦁 OpenClaw → GoldLion 迁移工具")
+	fmt.Println("🦁 OpenClaw → LionClaw 迁移工具")
 	fmt.Printf("   源目录: %s\n\n", ocDir)
 
 	result, err := migrate.OpenClaw(ocDir, logger)
@@ -398,5 +398,5 @@ func cmdMigrate() {
 	card := scorecard.Generate(ocDir)
 	fmt.Println(card.Format())
 
-	fmt.Println("✅ 迁移完成！运行 `goldlion start` 启动")
+	fmt.Println("✅ 迁移完成！运行 `lionclaw start` 启动")
 }

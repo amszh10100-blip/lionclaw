@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/goldlion/goldlion/internal/config"
+	"github.com/lionclaw/lionclaw/internal/config"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -22,7 +22,7 @@ func NewSQLiteCostTracker(dataDir string, cfg config.CostConfig) (*SQLiteCostTra
 		return nil, err
 	}
 
-	dbPath := filepath.Join(dataDir, "goldlion.db")
+	dbPath := filepath.Join(dataDir, "lionclaw.db")
 	db, err := sql.Open("sqlite3", dbPath+"?_journal_mode=WAL&_busy_timeout=5000")
 	if err != nil {
 		return nil, fmt.Errorf("打开数据库失败: %w", err)

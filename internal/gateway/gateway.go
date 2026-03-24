@@ -8,17 +8,17 @@ import (
 	"sync"
 	"time"
 
-	"github.com/goldlion/goldlion/internal/brain"
-	"github.com/goldlion/goldlion/internal/channel"
-	channeltg "github.com/goldlion/goldlion/internal/channel/telegram"
-	"github.com/goldlion/goldlion/internal/config"
-	"github.com/goldlion/goldlion/internal/memory"
-	"github.com/goldlion/goldlion/internal/scheduler"
-	"github.com/goldlion/goldlion/internal/vault"
-	"github.com/goldlion/goldlion/internal/webui"
+	"github.com/lionclaw/lionclaw/internal/brain"
+	"github.com/lionclaw/lionclaw/internal/channel"
+	channeltg "github.com/lionclaw/lionclaw/internal/channel/telegram"
+	"github.com/lionclaw/lionclaw/internal/config"
+	"github.com/lionclaw/lionclaw/internal/memory"
+	"github.com/lionclaw/lionclaw/internal/scheduler"
+	"github.com/lionclaw/lionclaw/internal/vault"
+	"github.com/lionclaw/lionclaw/internal/webui"
 )
 
-// Gateway 是 GoldLion 的核心网关
+// Gateway 是 LionClaw 的核心网关
 type Gateway struct {
 	cfg       *config.Config
 	channels  []channel.Channel
@@ -122,7 +122,7 @@ func (gw *Gateway) Run(ctx context.Context) error {
 	gw.scheduler.SetHandler(gw.handleScheduledJob)
 	go gw.scheduler.Start(ctx)
 
-	gw.logger.Info("🦁 GoldLion Gateway 就绪",
+	gw.logger.Info("🦁 LionClaw Gateway 就绪",
 		"channels", len(gw.channels),
 		"scheduled_jobs", gw.scheduler.JobCount(),
 	)
@@ -264,7 +264,7 @@ func (gw *Gateway) buildMessages(history []memory.Entry, userText string) []brai
 	messages := []brain.ChatMessage{
 		{
 			Role: brain.RoleSystem,
-			Content: `你是 GoldLion 🦁，一个安全的个人 AI Agent。
+			Content: `你是 LionClaw 🦁，一个安全的个人 AI Agent。
 
 核心特点：
 - 安全第一：你的凭证全部加密存储，数据本地优先
@@ -421,7 +421,7 @@ func (gw *Gateway) handleScheduledJob(ctx context.Context, job scheduler.Job) er
 	messages := []brain.ChatMessage{
 		{
 			Role:    brain.RoleSystem,
-			Content: "你是 GoldLion 🦁。以下是一个定时任务，请执行并返回结果。简洁实用，用中文。",
+			Content: "你是 LionClaw 🦁。以下是一个定时任务，请执行并返回结果。简洁实用，用中文。",
 		},
 		{
 			Role:    brain.RoleUser,
@@ -472,7 +472,7 @@ func (gw *Gateway) initChannels() error {
 	if gw.cfg.Channels.Telegram.Enabled {
 		token, err := gw.vault.Get("TELEGRAM_BOT_TOKEN")
 		if err != nil {
-			return fmt.Errorf("Telegram Bot Token 未配置。运行: goldlion vault set TELEGRAM_BOT_TOKEN <your-token>")
+			return fmt.Errorf("Telegram Bot Token 未配置。运行: lionclaw vault set TELEGRAM_BOT_TOKEN <your-token>")
 		}
 		bot := channeltg.New(string(token), gw.logger)
 		gw.channels = append(gw.channels, bot)
@@ -480,7 +480,7 @@ func (gw *Gateway) initChannels() error {
 	}
 
 	if len(gw.channels) == 0 {
-		return fmt.Errorf("至少需要一个渠道。运行 `goldlion setup` 配置")
+		return fmt.Errorf("至少需要一个渠道。运行 `lionclaw setup` 配置")
 	}
 
 	return nil

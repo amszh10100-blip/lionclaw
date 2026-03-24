@@ -41,7 +41,7 @@ func TestSaveAndLoad(t *testing.T) {
 	cfg.Cost.DailyLimitUSD = 10.0
 
 	// 创建配置目录
-	os.MkdirAll(filepath.Join(tmpDir, ".goldlion"), 0700)
+	os.MkdirAll(filepath.Join(tmpDir, ".lionclaw"), 0700)
 
 	if err := Save(cfg); err != nil {
 		t.Fatalf("Save: %v", err)

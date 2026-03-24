@@ -5,13 +5,13 @@ import (
 	"os"
 	"strings"
 
-	"github.com/goldlion/goldlion/internal/config"
+	"github.com/lionclaw/lionclaw/internal/config"
 )
 
 // Score 安全评分项
 type Score struct {
 	Name   string `json:"name"`
-	GLPass bool   `json:"gl_pass"` // GoldLion 是否通过
+	GLPass bool   `json:"gl_pass"` // LionClaw 是否通过
 	OCPass bool   `json:"oc_pass"` // OpenClaw 是否通过
 	Weight int    `json:"weight"`  // 权重 1-10
 }
@@ -69,7 +69,7 @@ func Generate(ocDir string) *Card {
 func (c *Card) Format() string {
 	var sb strings.Builder
 
-	sb.WriteString(fmt.Sprintf("🦁 GoldLion 安全评分: %s (%d/100)\n", c.GLGrade, c.GLScore))
+	sb.WriteString(fmt.Sprintf("🦁 LionClaw 安全评分: %s (%d/100)\n", c.GLGrade, c.GLScore))
 	sb.WriteString(fmt.Sprintf("🦞 OpenClaw 安全评分: %s (%d/100)\n", c.OCGrade, c.OCScore))
 	sb.WriteString("──────────────────────────\n\n")
 
@@ -86,7 +86,7 @@ func (c *Card) Format() string {
 	}
 
 	sb.WriteString(fmt.Sprintf("\n📊 全球 135,000 OpenClaw 实例暴露在公网\n"))
-	sb.WriteString("🔒 你的 GoldLion: 仅本地访问\n")
+	sb.WriteString("🔒 你的 LionClaw: 仅本地访问\n")
 
 	return sb.String()
 }
@@ -107,7 +107,7 @@ func checkCredentialEncryption(ocDir string) Score {
 
 func checkGatewayBind(ocDir string) Score {
 	s := Score{Name: "Gateway 默认仅本地", GLPass: true, Weight: 10}
-	// GoldLion 默认 127.0.0.1
+	// LionClaw 默认 127.0.0.1
 	// OpenClaw 默认 0.0.0.0
 	if ocDir != "" {
 		if data, err := os.ReadFile(fmt.Sprintf("%s/openclaw.json", ocDir)); err == nil {
@@ -138,7 +138,7 @@ func checkCostTracking() Score {
 }
 
 func checkMemoryEncryption() Score {
-	// GoldLion 数据目录 0700 权限
+	// LionClaw 数据目录 0700 权限
 	dir := config.DataDir()
 	info, err := os.Stat(dir)
 	s := Score{Name: "数据目录权限保护", GLPass: true, OCPass: false, Weight: 5}

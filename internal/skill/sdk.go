@@ -19,7 +19,7 @@ func Create(baseDir, name string) error {
 	manifest := Manifest{
 		Name:        name,
 		Version:     "0.1.0",
-		Description: fmt.Sprintf("%s — GoldLion Skill", name),
+		Description: fmt.Sprintf("%s — LionClaw Skill", name),
 		Permissions: Permissions{
 			Network:    []string{},
 			Filesystem: "none",
@@ -37,7 +37,7 @@ func Create(baseDir, name string) error {
 
 	// 生成入口脚本
 	script := `#!/bin/bash
-# GoldLion Skill: ` + name + `
+# LionClaw Skill: ` + name + `
 # 从 stdin 读取输入，输出到 stdout
 
 INPUT=$(cat)
@@ -49,7 +49,7 @@ echo "TODO: 实现你的逻辑"
 	}
 
 	// 生成 README
-	readme := fmt.Sprintf("# %s\n\nGoldLion Skill\n\n## 使用\n\n在对话中提到 `%s` 即可触发。\n\n## 权限\n\n- 网络: 无\n- 文件: 无\n", name, name)
+	readme := fmt.Sprintf("# %s\n\nLionClaw Skill\n\n## 使用\n\n在对话中提到 `%s` 即可触发。\n\n## 权限\n\n- 网络: 无\n- 文件: 无\n", name, name)
 	if err := os.WriteFile(filepath.Join(dir, "README.md"), []byte(readme), 0600); err != nil {
 		return err
 	}

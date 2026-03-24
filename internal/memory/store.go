@@ -42,7 +42,7 @@ func NewSQLiteStore(dataDir string) (*SQLiteStore, error) {
 		return nil, err
 	}
 
-	dbPath := filepath.Join(dataDir, "goldlion.db")
+	dbPath := filepath.Join(dataDir, "lionclaw.db")
 	db, err := sql.Open("sqlite3", dbPath+"?_journal_mode=WAL&_busy_timeout=5000")
 	if err != nil {
 		return nil, fmt.Errorf("打开数据库失败: %w", err)
@@ -172,7 +172,7 @@ func (s *SQLiteStore) ExportMarkdown(path string) error {
 	}
 	defer f.Close()
 
-	fmt.Fprintf(f, "# GoldLion Memory Export\n\n")
+	fmt.Fprintf(f, "# LionClaw Memory Export\n\n")
 	fmt.Fprintf(f, "> Exported at %s\n\n", time.Now().Format("2006-01-02 15:04:05"))
 
 	for rows.Next() {

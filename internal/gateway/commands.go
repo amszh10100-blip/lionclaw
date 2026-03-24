@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/goldlion/goldlion/internal/brain"
-	"github.com/goldlion/goldlion/internal/channel"
-	"github.com/goldlion/goldlion/internal/config"
-	"github.com/goldlion/goldlion/internal/scheduler"
+	"github.com/lionclaw/lionclaw/internal/brain"
+	"github.com/lionclaw/lionclaw/internal/channel"
+	"github.com/lionclaw/lionclaw/internal/config"
+	"github.com/lionclaw/lionclaw/internal/scheduler"
 )
 
 // handleCommand 处理 /命令
@@ -17,7 +17,7 @@ func (gw *Gateway) handleCommand(msg channel.Message) {
 
 	switch cmd {
 	case "/start":
-		gw.sendReply(msg, `🦁 欢迎使用 GoldLion！
+		gw.sendReply(msg, `🦁 欢迎使用 LionClaw！
 
 我是你的安全 AI Agent——凭证加密、本地优先、成本透明。
 
@@ -35,7 +35,7 @@ func (gw *Gateway) handleCommand(msg channel.Message) {
 发 /help 查看所有命令`)
 
 	case "/help":
-		gw.sendReply(msg, `🦁 GoldLion 命令
+		gw.sendReply(msg, `🦁 LionClaw 命令
 
 📊 信息
 /status    — 系统状态
@@ -128,7 +128,7 @@ func (gw *Gateway) cmdStatus(msg channel.Message) {
 		}
 	}
 
-	text := fmt.Sprintf(`🦁 GoldLion 状态
+	text := fmt.Sprintf(`🦁 LionClaw 状态
 
 📊 今日统计
   对话次数: %d (本地 %d / 云端 %d)
@@ -253,7 +253,7 @@ func (gw *Gateway) cmdStats(msg channel.Message) {
 	// 估算节省时间（每次对话约省 2 分钟人工时间）
 	savedMinutes := len(monthRecords) * 2
 
-	text := fmt.Sprintf(`📊 GoldLion 统计
+	text := fmt.Sprintf(`📊 LionClaw 统计
 
 今日:
   对话: %d 次 (本地 %d / 云端 %d)

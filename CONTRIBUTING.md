@@ -1,12 +1,12 @@
-# Contributing to GoldLion 🦁
+# Contributing to LionClaw 🦁
 
-感谢你对 GoldLion 的兴趣！
+感谢你对 LionClaw 的兴趣！
 
 ## 快速开始
 
 ```bash
-git clone https://github.com/goldlion/goldlion.git
-cd goldlion
+git clone https://github.com/lionclaw/lionclaw.git
+cd lionclaw
 make build   # 编译
 make test    # 测试
 ```
@@ -40,7 +40,7 @@ CGO_ENABLED=1 go test -tags "fts5" -race ./internal/...
 
 ## 安全
 
-发现安全问题？请**不要**公开提 Issue。发邮件到 security@goldlion.dev（占位）。
+发现安全问题？请**不要**公开提 Issue。发邮件到 security@lionclaw.dev（占位）。
 
 ## 行为准则
 

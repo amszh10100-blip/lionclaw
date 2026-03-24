@@ -1,4 +1,4 @@
-# 🦁 GoldLion
+# 🦁 LionClaw
 
 > **安全的个人 AI Agent** — OpenClaw 的安全替代品，5 分钟上手。
 
@@ -6,9 +6,9 @@
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![Security](https://img.shields.io/badge/Security-A+-gold)](#安全)
 
-## 为什么选择 GoldLion？
+## 为什么选择 LionClaw？
 
-| | OpenClaw 🦞 | GoldLion 🦁 |
+| | OpenClaw 🦞 | LionClaw 🦁 |
 |---|---|---|
 | **安全** | 6 CVE，明文凭证 | AES-256 加密 + 零信任 |
 | **安装** | "三天配不好" | 一条命令，5 分钟上手 |
@@ -22,8 +22,8 @@
 
 ```bash
 # 从源码编译（需要 Go 1.23+）
-git clone https://github.com/goldlion/goldlion.git
-cd goldlion
+git clone https://github.com/lionclaw/lionclaw.git
+cd lionclaw
 make build
 ```
 
@@ -31,7 +31,7 @@ make build
 
 ```bash
 # 交互式引导
-./bin/goldlion setup
+./bin/lionclaw setup
 ```
 
 按提示输入：
@@ -42,7 +42,7 @@ make build
 ### 启动
 
 ```bash
-./bin/goldlion start
+./bin/lionclaw start
 ```
 
 打开 Telegram，给你的 Bot 发消息，开始对话！
@@ -94,7 +94,7 @@ make build
 ### 🔄 从 OpenClaw 迁移
 
 ```bash
-./bin/goldlion migrate ~/.openclaw
+./bin/lionclaw migrate ~/.openclaw
 ```
 
 一键迁移：记忆 + Skills + 配置 + 自动修复明文凭证。
@@ -119,16 +119,16 @@ make build
 ## CLI 命令
 
 ```bash
-goldlion start       # 启动 Gateway
-goldlion setup       # 交互式配置
-goldlion status      # 查看状态
-goldlion cost        # 成本统计
-goldlion skill create <name>   # 创建 Skill
-goldlion skill list            # 列出 Skills
-goldlion skill audit <path>    # 安全审计
-goldlion vault set <key> <val> # 存储凭证
-goldlion vault list            # 列出凭证
-goldlion migrate <dir>         # 从 OpenClaw 迁移
+lionclaw start       # 启动 Gateway
+lionclaw setup       # 交互式配置
+lionclaw status      # 查看状态
+lionclaw cost        # 成本统计
+lionclaw skill create <name>   # 创建 Skill
+lionclaw skill list            # 列出 Skills
+lionclaw skill audit <path>    # 安全审计
+lionclaw vault set <key> <val> # 存储凭证
+lionclaw vault list            # 列出凭证
+lionclaw migrate <dir>         # 从 OpenClaw 迁移
 ```
 
 ## 开发
@@ -166,7 +166,7 @@ internal/
 - 默认 localhost 绑定
 - Skill 进程隔离 (sandbox-exec)
 - Skill 权限声明系统
-- 安全评分卡：`goldlion migrate` 自动对比
+- 安全评分卡：`lionclaw migrate` 自动对比
 
 ## License
 

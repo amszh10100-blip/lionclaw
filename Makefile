@@ -1,13 +1,13 @@
 .PHONY: build run test clean fmt lint
 
 VERSION := 0.1.0-dev
-BINARY := goldlion
+BINARY := lionclaw
 GOFLAGS := -tags "fts5" -ldflags="-s -w -X main.version=$(VERSION)"
 
 # 构建
 build:
-	@echo "🦁 构建 GoldLion $(VERSION)..."
-	CGO_ENABLED=1 go build $(GOFLAGS) -o bin/$(BINARY) ./cmd/goldlion
+	@echo "🦁 构建 LionClaw $(VERSION)..."
+	CGO_ENABLED=1 go build $(GOFLAGS) -o bin/$(BINARY) ./cmd/lionclaw
 	@echo "✅ 构建完成: bin/$(BINARY)"
 	@ls -lh bin/$(BINARY)
 

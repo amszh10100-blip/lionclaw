@@ -1,10 +1,10 @@
 #!/bin/bash
-# GoldLion macOS LaunchAgent 安装脚本
+# LionClaw macOS LaunchAgent 安装脚本
 set -e
 
-BINARY=$(which goldlion 2>/dev/null || echo "$HOME/.goldlion/bin/goldlion")
-PLIST="$HOME/Library/LaunchAgents/com.goldlion.agent.plist"
-LOG_DIR="$HOME/.goldlion/logs"
+BINARY=$(which lionclaw 2>/dev/null || echo "$HOME/.lionclaw/bin/lionclaw")
+PLIST="$HOME/Library/LaunchAgents/com.lionclaw.agent.plist"
+LOG_DIR="$HOME/.lionclaw/logs"
 
 mkdir -p "$LOG_DIR"
 mkdir -p "$(dirname "$PLIST")"
@@ -15,7 +15,7 @@ cat > "$PLIST" << PLIST
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.goldlion.agent</string>
+    <string>com.lionclaw.agent</string>
     <key>ProgramArguments</key>
     <array>
         <string>${BINARY}</string>
@@ -26,11 +26,11 @@ cat > "$PLIST" << PLIST
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>${LOG_DIR}/goldlion.log</string>
+    <string>${LOG_DIR}/lionclaw.log</string>
     <key>StandardErrorPath</key>
-    <string>${LOG_DIR}/goldlion.err</string>
+    <string>${LOG_DIR}/lionclaw.err</string>
     <key>WorkingDirectory</key>
-    <string>${HOME}/.goldlion</string>
+    <string>${HOME}/.lionclaw</string>
 </dict>
 </plist>
 PLIST
@@ -40,5 +40,5 @@ echo ""
 echo "管理命令:"
 echo "  启动: launchctl load $PLIST"
 echo "  停止: launchctl unload $PLIST"
-echo "  状态: launchctl list | grep goldlion"
-echo "  日志: tail -f $LOG_DIR/goldlion.log"
+echo "  状态: launchctl list | grep lionclaw"
+echo "  日志: tail -f $LOG_DIR/lionclaw.log"

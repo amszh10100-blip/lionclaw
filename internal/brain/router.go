@@ -6,7 +6,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/goldlion/goldlion/internal/config"
+	"github.com/lionclaw/lionclaw/internal/config"
 )
 
 // DefaultRouter 智能模型路由器

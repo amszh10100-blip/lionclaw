@@ -1,4 +1,4 @@
-module github.com/goldlion/goldlion
+module github.com/lionclaw/lionclaw
 
 go 1.25.0
 

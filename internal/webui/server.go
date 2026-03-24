@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/goldlion/goldlion/internal/brain"
-	"github.com/goldlion/goldlion/internal/config"
+	"github.com/lionclaw/lionclaw/internal/brain"
+	"github.com/lionclaw/lionclaw/internal/config"
 )
 
 // Server 内嵌 Web UI 服务器
@@ -54,7 +54,7 @@ func (s *Server) Start(ctx context.Context) error {
 }
 
 // basicAuth 基础认证中间件
-// 默认用户名 admin，密码 goldlion（首次登录后建议修改）
+// 默认用户名 admin，密码 lionclaw（首次登录后建议修改）
 func (s *Server) basicAuth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// localhost 直接放行
@@ -63,8 +63,8 @@ func (s *Server) basicAuth(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 		user, pass, ok := r.BasicAuth()
-		if !ok || user != "admin" || pass != "goldlion" {
-			w.Header().Set("WWW-Authenticate", `Basic realm="GoldLion"`)
+		if !ok || user != "admin" || pass != "lionclaw" {
+			w.Header().Set("WWW-Authenticate", `Basic realm="LionClaw"`)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -157,7 +157,7 @@ const dashboardHTML = `<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🦁 GoldLion Dashboard</title>
+<title>🦁 LionClaw Dashboard</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -198,7 +198,7 @@ const dashboardHTML = `<!DOCTYPE html>
 </head>
 <body>
 <div class="header">
-  <h1>🦁 GoldLion Dashboard</h1>
+  <h1>🦁 LionClaw Dashboard</h1>
   <p>安全的个人 AI Agent</p>
 </div>
 
@@ -237,7 +237,7 @@ const dashboardHTML = `<!DOCTYPE html>
 </div>
 
 <div class="footer">
-  GoldLion v0.1.0-dev | 更新于 %s | <a href="/api/status" style="color:#555">API</a>
+  LionClaw v0.1.0-dev | 更新于 %s | <a href="/api/status" style="color:#555">API</a>
 </div>
 
 <script>

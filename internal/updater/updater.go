@@ -16,7 +16,7 @@ import (
 
 // Updater 原子更新系统
 type Updater struct {
-	installDir string // ~/.goldlion
+	installDir string // ~/.lionclaw
 	logger     *slog.Logger
 }
 
@@ -43,14 +43,14 @@ type HealthCheck struct {
 // Update 执行原子更新
 func (u *Updater) Update(ctx context.Context, newBinaryPath string) error {
 	versionsDir := filepath.Join(u.installDir, "versions")
-	binLink := filepath.Join(u.installDir, "bin", "goldlion")
+	binLink := filepath.Join(u.installDir, "bin", "lionclaw")
 
 	// 1. 生成版本目录
 	ts := time.Now().Format("20060102-150405")
 	versionDir := filepath.Join(versionsDir, ts)
 	os.MkdirAll(versionDir, 0700)
 
-	newBinary := filepath.Join(versionDir, "goldlion")
+	newBinary := filepath.Join(versionDir, "lionclaw")
 
 	// 2. 复制新二进制到版本目录
 	if err := copyFile(newBinaryPath, newBinary); err != nil {
@@ -102,7 +102,7 @@ func (u *Updater) Update(ctx context.Context, newBinaryPath string) error {
 // Rollback 回滚到上一个版本
 func (u *Updater) Rollback() error {
 	versionsDir := filepath.Join(u.installDir, "versions")
-	binLink := filepath.Join(u.installDir, "bin", "goldlion")
+	binLink := filepath.Join(u.installDir, "bin", "lionclaw")
 
 	entries, err := os.ReadDir(versionsDir)
 	if err != nil || len(entries) < 2 {
@@ -111,7 +111,7 @@ func (u *Updater) Rollback() error {
 
 	// 倒数第二个就是上一个版本
 	prevVersion := entries[len(entries)-2].Name()
-	prevBinary := filepath.Join(versionsDir, prevVersion, "goldlion")
+	prevBinary := filepath.Join(versionsDir, prevVersion, "lionclaw")
 
 	if _, err := os.Stat(prevBinary); err != nil {
 		return fmt.Errorf("上一版本二进制不存在: %s", prevBinary)
@@ -185,7 +185,7 @@ func (u *Updater) checkConfig() HealthCheck {
 }
 
 func (u *Updater) checkDatabase() HealthCheck {
-	dbPath := filepath.Join(u.installDir, "data", "goldlion.db")
+	dbPath := filepath.Join(u.installDir, "data", "lionclaw.db")
 	if _, err := os.Stat(dbPath); err != nil {
 		return HealthCheck{"数据库", true, "新安装，无数据库"} // 新安装不算失败
 	}

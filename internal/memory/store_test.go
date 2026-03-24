@@ -41,11 +41,11 @@ func TestSQLiteStore_Search(t *testing.T) {
 	dir := t.TempDir()
 	store, _ := NewSQLiteStore(dir)
 
-	store.SaveMessage("s1", Entry{Role: "user", Content: "GoldLion 的安全架构很好"})
+	store.SaveMessage("s1", Entry{Role: "user", Content: "LionClaw 的安全架构很好"})
 	store.SaveMessage("s1", Entry{Role: "user", Content: "今天天气不错"})
-	store.SaveMessage("s1", Entry{Role: "user", Content: "GoldLion 的成本控制也很强"})
+	store.SaveMessage("s1", Entry{Role: "user", Content: "LionClaw 的成本控制也很强"})
 
-	results, err := store.Search("GoldLion", 10)
+	results, err := store.Search("LionClaw", 10)
 	if err != nil {
 		t.Fatalf("Search: %v", err)
 	}
@@ -93,7 +93,7 @@ func TestSQLiteStore_ExportMarkdown(t *testing.T) {
 	if !containsString(content, "测试导出") {
 		t.Error("export missing '测试导出'")
 	}
-	if !containsString(content, "GoldLion Memory Export") {
+	if !containsString(content, "LionClaw Memory Export") {
 		t.Error("export missing header")
 	}
 }

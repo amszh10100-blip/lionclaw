@@ -33,7 +33,7 @@ func keychainSet(service, account string, value []byte) error {
 
 func keyfilePath(service, account string) string {
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".goldlion", ".keystore", service+"-"+account)
+	return filepath.Join(home, ".lionclaw", ".keystore", service+"-"+account)
 }
 
 // 确保有随机源

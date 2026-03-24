@@ -65,6 +65,11 @@ type CostConfig struct {
 type SecurityConfig struct {
 	Bind string `yaml:"bind"`
 	Port int    `yaml:"port"`
+	WebUI struct { 
+		User string `yaml:"user"` 
+		Pass string `yaml:"pass"` 
+	} `yaml:"webui"` 
+
 }
 
 type ScenarioConfig struct {
@@ -83,7 +88,7 @@ func DefaultConfig() *Config {
 		Models: ModelsConfig{
 			Local: LocalModelsConfig{
 				Enabled:  true,
-				Endpoint: "http://127.0.0.1:11434",
+				Endpoint: func() string { if e := os.Getenv("OLLAMA_HOST"); e != "" { return e }; return "http://127.0.0.1:11434" }(),
 				Models: struct {
 					Small string `yaml:"small"`
 					Large string `yaml:"large"`

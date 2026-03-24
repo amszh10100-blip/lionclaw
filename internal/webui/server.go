@@ -2,11 +2,11 @@ package webui
 
 import (
 	"context"
+	"os"
 	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/lionclaw/lionclaw/internal/brain"
@@ -58,12 +58,25 @@ func (s *Server) Start(ctx context.Context) error {
 func (s *Server) basicAuth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// localhost 直接放行
-		if isLocalRequest(r) {
+		if false {
 			next(w, r)
 			return
 		}
+		expectedUser := s.cfg.Security.WebUI.User 
+		expectedPass := s.cfg.Security.WebUI.Pass 
+		if expectedUser == "" { 
+			expectedUser = os.Getenv("LIONCLAW_WEBUI_USER") 
+		} 
+		if expectedPass == "" { 
+			expectedPass = os.Getenv("LIONCLAW_WEBUI_PASS") 
+		} 
+		if expectedUser == "" || expectedPass == "" { 
+			expectedUser = "admin" 
+			expectedPass = "lionclaw" 
+		} 
+
 		user, pass, ok := r.BasicAuth()
-		if !ok || user != "admin" || pass != "lionclaw" {
+		if !ok || user != expectedUser || pass != expectedPass {
 			w.Header().Set("WWW-Authenticate", `Basic realm="LionClaw"`)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
@@ -72,10 +85,6 @@ func (s *Server) basicAuth(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func isLocalRequest(r *http.Request) bool {
-	host := r.RemoteAddr
-	return strings.HasPrefix(host, "127.0.0.1") || strings.HasPrefix(host, "[::1]") || strings.HasPrefix(host, "localhost")
-}
 
 func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	todayTotal, todayRecords, _ := s.cost.GetToday()

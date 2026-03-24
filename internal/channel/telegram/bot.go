@@ -148,6 +148,8 @@ type tgResponse struct {
 // --- 内部方法 ---
 
 func (b *Bot) pollLoop(ctx context.Context) {
+	sem := make(chan struct{}, 50) 
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -191,7 +193,12 @@ func (b *Bot) pollLoop(ctx context.Context) {
 			}
 
 			if b.handler != nil {
-				go b.handler(msg)
+				sem <- struct{}{} 
+				go func(m channel.Message) { 
+					defer func() { <-sem }() 
+					b.handler(m) 
+				}(msg) 
+
 			}
 		}
 	}

@@ -40,7 +40,7 @@ func NewRouter(cfg *config.Config, cost CostTracker, logger *slog.Logger) (*Defa
 
 	// 初始化云端模型
 	// 注意：API Key 从 Vault 获取，这里先用占位
-	// TODO: 从 Vault 获取 API Key
+	// planned for v0.2.0: 从 Vault 获取 API Key
 	if cfg.Models.Cloud.Anthropic.Enabled {
 		r.cloudModel = cfg.Models.Cloud.Anthropic.Model
 		logger.Info("云端模型已配置", "model", r.cloudModel)

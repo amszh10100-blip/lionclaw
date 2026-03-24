@@ -2,6 +2,7 @@ package updater
 
 import (
 	"context"
+	"github.com/lionclaw/lionclaw/internal/config"
 	"fmt"
 	"io"
 	"log/slog"
@@ -16,13 +17,14 @@ import (
 
 // Updater 原子更新系统
 type Updater struct {
+	cfg *config.Config
 	installDir string // ~/.lionclaw
 	logger     *slog.Logger
 }
 
 // NewUpdater 创建更新器
-func NewUpdater(installDir string, logger *slog.Logger) *Updater {
-	return &Updater{installDir: installDir, logger: logger}
+func NewUpdater(installDir string, cfg *config.Config, logger *slog.Logger) *Updater {
+	return &Updater{installDir: installDir, cfg: cfg, logger: logger}
 }
 
 // CheckResult 版本检查结果
@@ -202,7 +204,7 @@ func (u *Updater) checkVault() HealthCheck {
 
 func (u *Updater) checkOllama() HealthCheck {
 	client := &http.Client{Timeout: 3 * time.Second}
-	resp, err := client.Get("http://127.0.0.1:11434/api/tags")
+	resp, err := client.Get(u.cfg.Models.Local.Endpoint + "/api/tags")
 	if err != nil {
 		return HealthCheck{"Ollama", false, "不可达"}
 	}

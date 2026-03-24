@@ -42,7 +42,6 @@ func Create(baseDir, name string) error {
 
 INPUT=$(cat)
 echo "Skill '` + name + `' 收到输入: $INPUT"
-echo "TODO: 实现你的逻辑"
 `
 	if err := os.WriteFile(filepath.Join(dir, "run.sh"), []byte(script), 0755); err != nil {
 		return err

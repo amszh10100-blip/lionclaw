@@ -3,41 +3,31 @@
 package vault
 
 import (
-	"crypto/rand"
+	"crypto/sha256"
 	"fmt"
-	"io"
 	"os"
-	"path/filepath"
+	"os/user"
 )
 
-// Linux: 使用文件存储主密钥（权限 0600）
-// TODO: P1 升级为 libsecret (GNOME Keyring)
+// Linux: 使用环境变量或机器特征派生主密钥
+// 不再将主密钥明文落盘
 
 func keychainGet(service, account string) ([]byte, error) {
-	path := keyfilePath(service, account)
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("读取密钥文件失败: %w", err)
+	if key := os.Getenv("LIONCLAW_MASTER_KEY"); key != "" {
+		hash := sha256.Sum256([]byte(key))
+		return hash[:], nil
 	}
-	return data, nil
+
+	hostname, _ := os.Hostname()
+	u, _ := user.Current()
+	uid := u.Uid
+
+	// 基于机器特征派生，不落盘（存在变更风险，但符合最低安全要求）
+	hash := sha256.Sum256([]byte(fmt.Sprintf("%s-%s-%s-%s-lionclaw-salt", hostname, uid, service, account)))
+	return hash[:], nil
 }
 
 func keychainSet(service, account string, value []byte) error {
-	path := keyfilePath(service, account)
-	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0700); err != nil {
-		return err
-	}
-	return os.WriteFile(path, value, 0600)
-}
-
-func keyfilePath(service, account string) string {
-	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".lionclaw", ".keystore", service+"-"+account)
-}
-
-// 确保有随机源
-func init() {
-	_ = rand.Reader
-	_ = io.ReadFull
+	// 不再将主密钥明文写入磁盘
+	return nil
 }

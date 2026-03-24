@@ -21,7 +21,7 @@ import (
 	"github.com/lionclaw/lionclaw/internal/vault"
 )
 
-const version = "0.1.0-dev"
+var version = "dev"
 
 func main() {
 	if len(os.Args) < 2 {

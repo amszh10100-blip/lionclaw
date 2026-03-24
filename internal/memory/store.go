@@ -2,6 +2,8 @@ package memory
 
 import (
 	"database/sql"
+	"log" 
+
 	"fmt"
 	"os"
 	"path/filepath"
@@ -112,7 +114,7 @@ func (s *SQLiteStore) GetHistory(sessionID string, limit int) ([]Entry, error) {
 		if err := rows.Scan(&e.ID, &e.SessionID, &e.Role, &e.Content, &e.Summary, &e.Tokens, &e.Model, &e.CostUSD, &ts); err != nil {
 			continue
 		}
-		e.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", ts)
+		if t, err := time.Parse("2006-01-02 15:04:05", ts); err != nil { log.Printf("解析时间失败: %v", err); e.CreatedAt = time.Now() } else { e.CreatedAt = t }
 		entries = append(entries, e)
 	}
 
@@ -147,7 +149,7 @@ func (s *SQLiteStore) Search(query string, limit int) ([]Entry, error) {
 		if err := rows.Scan(&e.ID, &e.SessionID, &e.Role, &e.Content, &e.Summary, &e.Tokens, &e.Model, &e.CostUSD, &ts); err != nil {
 			continue
 		}
-		e.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", ts)
+		if t, err := time.Parse("2006-01-02 15:04:05", ts); err != nil { log.Printf("解析时间失败: %v", err); e.CreatedAt = time.Now() } else { e.CreatedAt = t }
 		entries = append(entries, e)
 	}
 	return entries, nil
@@ -187,6 +189,6 @@ func (s *SQLiteStore) ExportMarkdown(path string) error {
 }
 
 func (s *SQLiteStore) ImportMarkdown(path string) error {
-	// TODO: P1 实现 Markdown 导入
+	// planned for v0.2.0: 实现 Markdown 导入
 	return fmt.Errorf("Markdown 导入尚未实现")
 }

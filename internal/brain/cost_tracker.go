@@ -2,6 +2,8 @@ package brain
 
 import (
 	"database/sql"
+	"log" 
+
 	"fmt"
 	"os"
 	"path/filepath"
@@ -94,7 +96,7 @@ func (t *SQLiteCostTracker) getRecordsSince(since string) (float64, []CostRecord
 		if err := rows.Scan(&r.Model, &r.IsLocal, &r.InputTokens, &r.OutputTokens, &r.CostUSD, &r.TaskLabel, &ts); err != nil {
 			continue
 		}
-		r.Timestamp, _ = time.Parse("2006-01-02 15:04:05", ts)
+		if t, err := time.Parse("2006-01-02 15:04:05", ts); err != nil { log.Printf("解析时间失败: %v", err); r.Timestamp = time.Now() } else { r.Timestamp = t }
 		total += r.CostUSD
 		records = append(records, r)
 	}

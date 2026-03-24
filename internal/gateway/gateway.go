@@ -225,7 +225,13 @@ func (gw *Gateway) handleMessage(msg channel.Message) {
 	gw.saveToMemory(msg.ChatID, "user", msg.Text, 0, "", 0)
 	gw.saveToMemory(msg.ChatID, "assistant", resp.Content, resp.InputTokens+resp.OutputTokens, resp.Model, resp.CostUSD)
 
-	// 8. 构建回复（附带模型信息）
+	// 8. 预算预警检查
+	gw.checkBudgetWarning(msg, resp.CostUSD)
+
+	// 9. 检查上下文大小，需要时触发压缩
+	go gw.maybeCompress(msg.ChatID)
+
+	// 9. 构建回复（附带模型信息）
 	costLabel := fmt.Sprintf("$%.4f", resp.CostUSD)
 	if provider.IsLocal() {
 		costLabel = "$0"
@@ -298,6 +304,53 @@ func (gw *Gateway) sendReply(msg channel.Message, text string) {
 		} else {
 			gw.logger.Info("回复已发送", "channel", ch.Name(), "text_len", len(text))
 		}
+	}
+}
+
+// checkBudgetWarning 预算预警
+func (gw *Gateway) checkBudgetWarning(msg channel.Message, lastCost float64) {
+	budget := gw.cost.GetBudget()
+	todayTotal, _, _ := gw.cost.GetToday()
+
+	warnThreshold := budget.DailyLimitUSD * budget.WarnAtPercent
+	if todayTotal >= warnThreshold && (todayTotal-lastCost) < warnThreshold {
+		// 刚刚越过预警线
+		remaining := budget.DailyLimitUSD - todayTotal
+		gw.sendReply(msg, fmt.Sprintf(
+			"⚠️ 预算预警！今日已用 $%.4f (%.0f%%)，剩余 $%.4f\n\n本地模型不计费，云端调用将在预算耗尽时暂停。",
+			todayTotal, todayTotal/budget.DailyLimitUSD*100, remaining,
+		))
+	}
+}
+
+// maybeCompress 检查是否需要压缩上下文
+func (gw *Gateway) maybeCompress(sessionID string) {
+	history, err := gw.memory.GetHistory(sessionID, 100)
+	if err != nil || len(history) < 40 {
+		return // 不到 40 条不压缩
+	}
+
+	// 估算 token
+	totalTokens := 0
+	for _, e := range history {
+		totalTokens += len([]rune(e.Content)) * 2 // 粗略估算
+	}
+
+	if totalTokens < 8000 {
+		return
+	}
+
+	gw.logger.Info("触发上下文压缩", "session", sessionID, "messages", len(history), "est_tokens", totalTokens)
+
+	// 用本地小模型做摘要（免费）
+	summarizer := brain.NewLLMSummarizer(
+		brain.NewOllamaProvider(gw.cfg.Models.Local.Endpoint),
+		gw.cfg.Models.Local.Models.Small,
+	)
+
+	compressor := memory.NewCompressor(gw.memory, summarizer, gw.logger)
+	if err := compressor.CheckAndCompress(context.Background(), sessionID); err != nil {
+		gw.logger.Error("压缩失败", "error", err)
 	}
 }
 

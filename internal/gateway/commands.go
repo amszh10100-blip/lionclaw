@@ -30,15 +30,28 @@ func (gw *Gateway) handleCommand(msg channel.Message) {
 	case "/help":
 		gw.sendReply(msg, `🦁 GoldLion 命令
 
+📊 信息
 /status    — 系统状态
 /cost      — 成本统计
+/stats     — 详细统计+节省时间
 /model     — 模型配置
-/scenario  — 场景包管理
-/enable    — 启用场景 (如 /enable morning_brief)
-/disable   — 停用场景
-/help      — 帮助
 
-直接发消息即可对话，无需命令前缀。`)
+🔍 记忆
+/search    — 搜索记忆 (如 /search 项目预算)
+/export    — 导出记忆为 Markdown
+/clear     — 清除会话(自动备份)
+
+⏰ 场景包
+/scenario  — 查看场景包列表
+/enable    — 启用 (如 /enable morning_brief)
+/disable   — 停用
+
+🧪 调试
+/route     — 测试路由 (如 /route 帮我分析)
+
+🌐 Web UI: http://127.0.0.1:18790
+
+直接发消息即可对话，无需命令。`)
 
 	case "/status":
 		gw.cmdStatus(msg)
@@ -307,6 +320,7 @@ func (gw *Gateway) cmdScenarios(msg channel.Message) {
 		{"morning_brief", "☀️ 晨间简报 — 每天 9:00 推送", "09:00"},
 		{"github_patrol", "🔧 GitHub 巡逻 — 每 2 小时", "*/120"},
 		{"meeting_prep", "📅 会议助手 — 每小时提醒", "*/60"},
+		{"weekly_report", "📊 周价值报告 — 每天 9:00", "09:00"},
 	}
 
 	var sb strings.Builder
@@ -345,6 +359,10 @@ func (gw *Gateway) cmdEnableScenario(msg channel.Message, name string, enable bo
 		"meeting_prep": {
 			cron:   "*/60",
 			prompt: "请给出一条高效会议的建议或技巧。",
+		},
+		"weekly_report": {
+			cron:   "09:00",  // 周日 9:00（调度器暂不支持周粒度，先每天）
+			prompt: "生成本周 AI 助手使用价值报告：总结对话数量、节省时间、花费成本，给出一句鼓励的话。",
 		},
 	}
 

@@ -39,7 +39,10 @@ func TestSQLiteStore_SaveAndGet(t *testing.T) {
 
 func TestSQLiteStore_Search(t *testing.T) {
 	dir := t.TempDir()
-	store, _ := NewSQLiteStore(dir)
+	store, err := NewSQLiteStore(dir)
+	if err != nil {
+		t.Fatalf("NewSQLiteStore failed: %v", err)
+	}
 
 	store.SaveMessage("s1", Entry{Role: "user", Content: "LionClaw 的安全架构很好"})
 	store.SaveMessage("s1", Entry{Role: "user", Content: "今天天气不错"})
@@ -56,7 +59,10 @@ func TestSQLiteStore_Search(t *testing.T) {
 
 func TestSQLiteStore_SessionIsolation(t *testing.T) {
 	dir := t.TempDir()
-	store, _ := NewSQLiteStore(dir)
+	store, err := NewSQLiteStore(dir)
+	if err != nil {
+		t.Fatalf("NewSQLiteStore failed: %v", err)
+	}
 
 	store.SaveMessage("user-A", Entry{Role: "user", Content: "A的消息"})
 	store.SaveMessage("user-B", Entry{Role: "user", Content: "B的消息"})
@@ -74,7 +80,10 @@ func TestSQLiteStore_SessionIsolation(t *testing.T) {
 
 func TestSQLiteStore_ExportMarkdown(t *testing.T) {
 	dir := t.TempDir()
-	store, _ := NewSQLiteStore(dir)
+	store, err := NewSQLiteStore(dir)
+	if err != nil {
+		t.Fatalf("NewSQLiteStore failed: %v", err)
+	}
 
 	store.SaveMessage("s1", Entry{Role: "user", Content: "测试导出"})
 	store.SaveMessage("s1", Entry{Role: "assistant", Content: "导出成功"})
@@ -100,7 +109,10 @@ func TestSQLiteStore_ExportMarkdown(t *testing.T) {
 
 func TestSQLiteStore_Limit(t *testing.T) {
 	dir := t.TempDir()
-	store, _ := NewSQLiteStore(dir)
+	store, err := NewSQLiteStore(dir)
+	if err != nil {
+		t.Fatalf("NewSQLiteStore failed: %v", err)
+	}
 
 	for i := 0; i < 50; i++ {
 		store.SaveMessage("s1", Entry{Role: "user", Content: "msg"})

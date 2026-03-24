@@ -17,11 +17,11 @@ run: build
 
 # 测试
 test:
-	go test -v -race ./...
+	CGO_ENABLED=1 go test -v -race -tags "fts5" ./...
 
 # 测试覆盖率
 cover:
-	go test -coverprofile=coverage.out ./...
+	CGO_ENABLED=1 go test -coverprofile=coverage.out -tags "fts5" ./...
 	go tool cover -html=coverage.out -o coverage.html
 	@echo "✅ 覆盖率报告: coverage.html"
 

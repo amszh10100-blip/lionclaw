@@ -9,9 +9,13 @@ import (
 	"strings"
 	"syscall"
 
+	"log/slog"
+
 	"github.com/goldlion/goldlion/internal/brain"
 	"github.com/goldlion/goldlion/internal/config"
 	"github.com/goldlion/goldlion/internal/gateway"
+	"github.com/goldlion/goldlion/internal/migrate"
+	"github.com/goldlion/goldlion/internal/scorecard"
 	"github.com/goldlion/goldlion/internal/vault"
 )
 
@@ -263,6 +267,47 @@ func cmdCost() {
 }
 
 func cmdMigrate() {
-	fmt.Println("🦁 OpenClaw 迁移")
-	fmt.Println("   (TODO: P0 Week 7-8 实现)")
+	logger := slog.Default()
+
+	// 检测 OpenClaw 目录
+	ocDir := os.Getenv("HOME") + "/.openclaw"
+	if len(os.Args) > 2 {
+		ocDir = os.Args[2]
+	}
+
+	fmt.Println("🦁 OpenClaw → GoldLion 迁移工具\n")
+	fmt.Printf("   源目录: %s\n\n", ocDir)
+
+	result, err := migrate.OpenClaw(ocDir, logger)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "❌ 迁移失败: %v\n", err)
+		os.Exit(1)
+	}
+
+	// 显示结果
+	fmt.Println("📋 迁移结果:")
+	fmt.Printf("   记忆条目: %d 条\n", result.MemoryEntries)
+	fmt.Printf("   Skills: %d 已迁移, %d 跳过\n", result.SkillsMigrated, result.SkillsSkipped)
+	fmt.Printf("   配置: %v\n", result.ConfigMigrated)
+
+	if len(result.SecurityFixes) > 0 {
+		fmt.Println("\n🛡️ 安全修复:")
+		for _, fix := range result.SecurityFixes {
+			fmt.Printf("   • %s\n", fix)
+		}
+	}
+
+	if len(result.Warnings) > 0 {
+		fmt.Println("\n⚠️ 注意:")
+		for _, w := range result.Warnings {
+			fmt.Printf("   • %s\n", w)
+		}
+	}
+
+	// 生成安全评分卡
+	fmt.Println("\n" + strings.Repeat("─", 40))
+	card := scorecard.Generate(ocDir)
+	fmt.Println(card.Format())
+
+	fmt.Println("✅ 迁移完成！运行 `goldlion start` 启动")
 }

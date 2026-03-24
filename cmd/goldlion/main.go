@@ -10,12 +10,14 @@ import (
 	"syscall"
 
 	"log/slog"
+	"path/filepath"
 
 	"github.com/goldlion/goldlion/internal/brain"
 	"github.com/goldlion/goldlion/internal/config"
 	"github.com/goldlion/goldlion/internal/gateway"
 	"github.com/goldlion/goldlion/internal/migrate"
 	"github.com/goldlion/goldlion/internal/scorecard"
+	"github.com/goldlion/goldlion/internal/skill"
 	"github.com/goldlion/goldlion/internal/vault"
 )
 
@@ -36,6 +38,8 @@ func main() {
 		cmdStatus()
 	case "version":
 		fmt.Printf("goldlion v%s\n", version)
+	case "skill":
+		cmdSkill()
 	case "vault":
 		cmdVault()
 	case "cost":
@@ -58,7 +62,8 @@ Commands:
   start     启动 Gateway
   setup     交互式配置引导
   status    查看运行状态
-  vault     管理加密凭证 (set/get/list/delete)
+  skill     Skill 管理 (create/list/audit)
+  vault     管理加密凭证 (set/list/delete)
   cost      查看成本统计
   migrate   从 OpenClaw 迁移
   version   显示版本
@@ -230,6 +235,90 @@ func cmdVault() {
 
 	default:
 		fmt.Println("Usage: goldlion vault <set|list|delete>")
+	}
+}
+
+func cmdSkill() {
+	if len(os.Args) < 3 {
+		fmt.Println(`🦁 Skill 管理
+
+Usage: goldlion skill <command>
+
+Commands:
+  create <name>   创建新 Skill 脚手架
+  list            列出已安装 Skill
+  audit <path>    安全审计 Skill`)
+		return
+	}
+
+	skillDir := filepath.Join(config.ConfigDir(), "skills")
+
+	switch os.Args[2] {
+	case "create":
+		if len(os.Args) < 4 {
+			fmt.Println("用法: goldlion skill create <name>")
+			return
+		}
+		name := os.Args[3]
+		if err := skill.Create(skillDir, name); err != nil {
+			fmt.Fprintf(os.Stderr, "❌ %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("✅ Skill '%s' 已创建:\n", name)
+		fmt.Printf("   %s/%s/\n", skillDir, name)
+		fmt.Printf("   ├── skill.yaml   (配置)\n")
+		fmt.Printf("   ├── run.sh       (入口)\n")
+		fmt.Printf("   ├── test.sh      (测试)\n")
+		fmt.Printf("   └── README.md    (文档)\n")
+		fmt.Printf("\n编辑 run.sh 实现你的逻辑，然后 goldlion skill audit %s/%s\n", skillDir, name)
+
+	case "list":
+		entries, err := os.ReadDir(skillDir)
+		if err != nil {
+			fmt.Println("(无已安装 Skill)")
+			return
+		}
+		fmt.Println("🦁 已安装 Skills:")
+		count := 0
+		for _, e := range entries {
+			if !e.IsDir() {
+				continue
+			}
+			mPath := filepath.Join(skillDir, e.Name(), "skill.yaml")
+			if _, err := os.Stat(mPath); err != nil {
+				continue
+			}
+			fmt.Printf("  📦 %s\n", e.Name())
+			count++
+		}
+		if count == 0 {
+			fmt.Println("  (空)")
+		}
+		fmt.Printf("\n共 %d 个 Skill\n", count)
+
+	case "audit":
+		if len(os.Args) < 4 {
+			fmt.Println("用法: goldlion skill audit <path>")
+			return
+		}
+		results, err := skill.Audit(os.Args[3])
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "❌ %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Println("🛡️ Skill 安全审计:")
+		for _, r := range results {
+			icon := "✅"
+			if r.Status == "warn" {
+				icon = "⚠️"
+			} else if r.Status == "error" {
+				icon = "❌"
+			}
+			fmt.Printf("  %s %s: %s\n", icon, r.Check, r.Detail)
+		}
+
+	default:
+		fmt.Printf("未知命令: skill %s\n", os.Args[2])
 	}
 }
 

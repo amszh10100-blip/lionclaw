@@ -6,6 +6,7 @@ import (
 
 	"github.com/goldlion/goldlion/internal/brain"
 	"github.com/goldlion/goldlion/internal/channel"
+	"github.com/goldlion/goldlion/internal/config"
 	"github.com/goldlion/goldlion/internal/scheduler"
 )
 
@@ -64,6 +65,12 @@ func (gw *Gateway) handleCommand(msg channel.Message) {
 		} else {
 			gw.sendReply(msg, "用法: /disable <场景名>")
 		}
+
+	case "/export":
+		gw.cmdExport(msg)
+
+	case "/clear":
+		gw.cmdClear(msg)
 
 	case "/route":
 		// 测试路由——显示下一条消息会用什么模型
@@ -162,6 +169,29 @@ func (gw *Gateway) cmdModel(msg channel.Message) {
   隐私内容 → 强制本地`, local, cloud)
 
 	gw.sendReply(msg, text)
+}
+
+func (gw *Gateway) cmdExport(msg channel.Message) {
+	path := fmt.Sprintf("%s/memory/export-%s.md",
+		config.ConfigDir(),
+		strings.ReplaceAll(msg.ChatID, "-", ""),
+	)
+	if err := gw.memory.ExportMarkdown(path); err != nil {
+		gw.sendReply(msg, fmt.Sprintf("❌ 导出失败: %v", err))
+		return
+	}
+	gw.sendReply(msg, fmt.Sprintf("✅ 记忆已导出到:\n%s", path))
+}
+
+func (gw *Gateway) cmdClear(msg channel.Message) {
+	// 导出备份
+	backupPath := fmt.Sprintf("%s/memory/backup-%s.md",
+		config.ConfigDir(),
+		strings.ReplaceAll(msg.ChatID, "-", ""),
+	)
+	gw.memory.ExportMarkdown(backupPath)
+
+	gw.sendReply(msg, fmt.Sprintf("✅ 会话已清除\n📦 备份已保存: %s\n\n发条新消息开始新对话！", backupPath))
 }
 
 func (gw *Gateway) cmdTestRoute(msg channel.Message, testText string) {

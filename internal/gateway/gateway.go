@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/goldlion/goldlion/internal/brain"
 	"github.com/goldlion/goldlion/internal/channel"
@@ -28,6 +29,8 @@ type Gateway struct {
 	scheduler *scheduler.Scheduler
 	logger    *slog.Logger
 	mu        sync.RWMutex
+	rateLimit map[string][]time.Time // 用户速率限制
+	rateMu    sync.Mutex
 }
 
 // New 创建新的 Gateway 实例
@@ -82,6 +85,7 @@ func New(cfg *config.Config) (*Gateway, error) {
 		vault:     v,
 		scheduler: sched,
 		logger:    logger,
+		rateLimit: make(map[string][]time.Time),
 	}
 
 	return gw, nil
@@ -146,10 +150,23 @@ func (gw *Gateway) handleMessage(msg channel.Message) {
 		"text_len", len(msg.Text),
 	)
 
-	// 0. 命令处理
+	// 0. 速率限制（每用户每分钟 10 条）
+	if !gw.checkRateLimit(msg.UserID, 10, time.Minute) {
+		gw.sendReply(msg, "⚠️ 发送太快了，请稍后再试")
+		return
+	}
+
+	// 0.1 命令处理
 	if strings.HasPrefix(msg.Text, "/") {
 		gw.handleCommand(msg)
 		return
+	}
+
+	// 0.2 发送 typing 状态
+	for _, ch := range gw.channels {
+		if tg, ok := ch.(interface{ SendTyping(string) }); ok {
+			tg.SendTyping(msg.ChatID)
+		}
 	}
 
 	// 记录用户 chatID（供场景包使用）
@@ -305,6 +322,31 @@ func (gw *Gateway) sendReply(msg channel.Message, text string) {
 			gw.logger.Info("回复已发送", "channel", ch.Name(), "text_len", len(text))
 		}
 	}
+}
+
+// checkRateLimit 速率限制
+func (gw *Gateway) checkRateLimit(userID string, maxPerWindow int, window time.Duration) bool {
+	gw.rateMu.Lock()
+	defer gw.rateMu.Unlock()
+
+	now := time.Now()
+	cutoff := now.Add(-window)
+
+	// 清理过期记录
+	times := gw.rateLimit[userID]
+	var valid []time.Time
+	for _, t := range times {
+		if t.After(cutoff) {
+			valid = append(valid, t)
+		}
+	}
+
+	if len(valid) >= maxPerWindow {
+		return false
+	}
+
+	gw.rateLimit[userID] = append(valid, now)
+	return true
 }
 
 // checkBudgetWarning 预算预警

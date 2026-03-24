@@ -46,6 +46,7 @@ func (b *Bot) Start(ctx context.Context) error {
 		return fmt.Errorf("Telegram Bot Token 无效: %w", err)
 	}
 	b.logger.Info("Telegram Bot 已连接", "username", me.Username, "id", me.ID)
+	fmt.Printf("   📱 打开 Telegram: https://t.me/%s\n", me.Username)
 
 	// 长轮询循环
 	go b.pollLoop(ctx)
@@ -63,6 +64,14 @@ func (b *Bot) Stop() error {
 
 func (b *Bot) OnMessage(handler func(channel.Message)) {
 	b.handler = handler
+}
+
+// SendTyping 发送"正在输入"状态
+func (b *Bot) SendTyping(chatID string) {
+	b.apiCall("sendChatAction", map[string]any{
+		"chat_id": chatID,
+		"action":  "typing",
+	})
 }
 
 // Send 发送消息

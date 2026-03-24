@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/goldlion/goldlion/internal/brain"
@@ -25,9 +26,9 @@ func New(cfg *config.Config, cost brain.CostTracker, logger *slog.Logger) *Serve
 	s := &Server{cfg: cfg, cost: cost, logger: logger}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", s.handleDashboard)
-	mux.HandleFunc("/api/status", s.handleAPIStatus)
-	mux.HandleFunc("/api/cost", s.handleAPICost)
+	mux.HandleFunc("/", s.basicAuth(s.handleDashboard))
+	mux.HandleFunc("/api/status", s.basicAuth(s.handleAPIStatus))
+	mux.HandleFunc("/api/cost", s.basicAuth(s.handleAPICost))
 
 	s.srv = &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", cfg.Security.Bind, cfg.Security.Port),
@@ -50,6 +51,30 @@ func (s *Server) Start(ctx context.Context) error {
 		return err
 	}
 	return nil
+}
+
+// basicAuth 基础认证中间件
+// 默认用户名 admin，密码 goldlion（首次登录后建议修改）
+func (s *Server) basicAuth(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// localhost 直接放行
+		if isLocalRequest(r) {
+			next(w, r)
+			return
+		}
+		user, pass, ok := r.BasicAuth()
+		if !ok || user != "admin" || pass != "goldlion" {
+			w.Header().Set("WWW-Authenticate", `Basic realm="GoldLion"`)
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		next(w, r)
+	}
+}
+
+func isLocalRequest(r *http.Request) bool {
+	host := r.RemoteAddr
+	return strings.HasPrefix(host, "127.0.0.1") || strings.HasPrefix(host, "[::1]") || strings.HasPrefix(host, "localhost")
 }
 
 func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {

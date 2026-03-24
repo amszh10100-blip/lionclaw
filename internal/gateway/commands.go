@@ -19,13 +19,20 @@ func (gw *Gateway) handleCommand(msg channel.Message) {
 	case "/start":
 		gw.sendReply(msg, `🦁 欢迎使用 GoldLion！
 
-我是你的安全 AI Agent。直接发消息给我就行。
+我是你的安全 AI Agent——凭证加密、本地优先、成本透明。
 
-命令列表：
-/status  — 查看状态
-/cost    — 查看今日成本
-/model   — 查看当前模型配置
-/help    — 帮助`)
+试试这些：
+• 发送 "你好" 开始对话
+• 发送 "帮我分析..." 获取深度回答
+• 发送 /cost 查看花费（本地模型 $0）
+• 发送 /scenario 启用自动化场景
+
+安全提醒：
+🔒 你的数据全部本地存储
+🛡️ 凭证 AES-256 加密
+💰 简单对话使用本地模型，零成本
+
+发 /help 查看所有命令`)
 
 	case "/help":
 		gw.sendReply(msg, `🦁 GoldLion 命令

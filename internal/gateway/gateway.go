@@ -14,6 +14,7 @@ import (
 	"github.com/goldlion/goldlion/internal/memory"
 	"github.com/goldlion/goldlion/internal/scheduler"
 	"github.com/goldlion/goldlion/internal/vault"
+	"github.com/goldlion/goldlion/internal/webui"
 )
 
 // Gateway 是 GoldLion 的核心网关
@@ -101,6 +102,14 @@ func (gw *Gateway) Run(ctx context.Context) error {
 		}
 		gw.logger.Info("渠道已启动", "channel", ch.Name())
 	}
+
+	// 启动 Web UI
+	web := webui.New(gw.cfg, gw.cost, gw.logger)
+	go func() {
+		if err := web.Start(ctx); err != nil {
+			gw.logger.Error("Web UI 启动失败", "error", err)
+		}
+	}()
 
 	// 加载场景包
 	gw.loadScenarios()

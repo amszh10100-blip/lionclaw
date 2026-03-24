@@ -61,6 +61,22 @@ func NewSQLiteStore(dataDir string) (*SQLiteStore, error) {
 			created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
 		);
 		CREATE INDEX IF NOT EXISTS idx_messages_session ON messages(session_id, created_at);
+
+		-- FTS5 全文搜索索引
+		CREATE VIRTUAL TABLE IF NOT EXISTS messages_fts USING fts5(
+			content,
+			content='messages',
+			content_rowid='id',
+			tokenize='unicode61'
+		);
+
+		-- 自动同步触发器
+		CREATE TRIGGER IF NOT EXISTS messages_ai AFTER INSERT ON messages BEGIN
+			INSERT INTO messages_fts(rowid, content) VALUES (new.id, new.content);
+		END;
+		CREATE TRIGGER IF NOT EXISTS messages_ad AFTER DELETE ON messages BEGIN
+			INSERT INTO messages_fts(messages_fts, rowid, content) VALUES('delete', old.id, old.content);
+		END;
 	`); err != nil {
 		return nil, fmt.Errorf("创建表失败: %w", err)
 	}
@@ -109,12 +125,15 @@ func (s *SQLiteStore) GetHistory(sessionID string, limit int) ([]Entry, error) {
 }
 
 func (s *SQLiteStore) Search(query string, limit int) ([]Entry, error) {
-	// P0: 简单 LIKE 搜索
-	// P1: 升级为 FTS5 全文检索
+	// P1: FTS5 全文检索（带排名）
 	rows, err := s.db.Query(
-		`SELECT id, session_id, role, content, summary, tokens, model, cost_usd, created_at
-		 FROM messages WHERE content LIKE ? ORDER BY created_at DESC LIMIT ?`,
-		"%"+query+"%", limit,
+		`SELECT m.id, m.session_id, m.role, m.content, m.summary, m.tokens, m.model, m.cost_usd, m.created_at
+		 FROM messages m
+		 JOIN messages_fts f ON m.id = f.rowid
+		 WHERE messages_fts MATCH ?
+		 ORDER BY rank
+		 LIMIT ?`,
+		query, limit,
 	)
 	if err != nil {
 		return nil, err

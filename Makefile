@@ -2,7 +2,7 @@
 
 VERSION := 0.1.0-dev
 BINARY := goldlion
-GOFLAGS := -ldflags="-s -w -X main.version=$(VERSION)"
+GOFLAGS := -tags "fts5" -ldflags="-s -w -X main.version=$(VERSION)"
 
 # 构建
 build:

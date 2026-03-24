@@ -66,6 +66,16 @@ func (gw *Gateway) handleCommand(msg channel.Message) {
 			gw.sendReply(msg, "用法: /disable <场景名>")
 		}
 
+	case "/search":
+		if len(parts) > 1 {
+			gw.cmdSearch(msg, strings.Join(parts[1:], " "))
+		} else {
+			gw.sendReply(msg, "用法: /search <关键词>\n例如: /search 项目预算")
+		}
+
+	case "/stats":
+		gw.cmdStats(msg)
+
 	case "/export":
 		gw.cmdExport(msg)
 
@@ -169,6 +179,76 @@ func (gw *Gateway) cmdModel(msg channel.Message) {
   隐私内容 → 强制本地`, local, cloud)
 
 	gw.sendReply(msg, text)
+}
+
+func (gw *Gateway) cmdSearch(msg channel.Message, query string) {
+	results, err := gw.memory.Search(query, 5)
+	if err != nil {
+		gw.sendReply(msg, fmt.Sprintf("❌ 搜索失败: %v", err))
+		return
+	}
+
+	if len(results) == 0 {
+		gw.sendReply(msg, fmt.Sprintf("🔍 未找到「%s」相关记忆", query))
+		return
+	}
+
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("🔍 搜索「%s」找到 %d 条:\n\n", query, len(results)))
+
+	for i, r := range results {
+		content := r.Content
+		if len(content) > 150 {
+			content = content[:150] + "..."
+		}
+		ts := r.CreatedAt.Format("01-02 15:04")
+		sb.WriteString(fmt.Sprintf("%d. [%s] %s\n   %s\n\n", i+1, ts, r.Role, content))
+	}
+
+	gw.sendReply(msg, sb.String())
+}
+
+func (gw *Gateway) cmdStats(msg channel.Message) {
+	todayTotal, todayRecords, _ := gw.cost.GetToday()
+	monthTotal, monthRecords, _ := gw.cost.GetMonth()
+
+	localToday, cloudToday := 0, 0
+	for _, r := range todayRecords {
+		if r.IsLocal { localToday++ } else { cloudToday++ }
+	}
+
+	localMonth, cloudMonth := 0, 0
+	for _, r := range monthRecords {
+		if r.IsLocal { localMonth++ } else { cloudMonth++ }
+	}
+
+	// 估算节省时间（每次对话约省 2 分钟人工时间）
+	savedMinutes := len(monthRecords) * 2
+
+	text := fmt.Sprintf(`📊 GoldLion 统计
+
+今日:
+  对话: %d 次 (本地 %d / 云端 %d)
+  花费: $%.4f
+
+本月:
+  对话: %d 次 (本地 %d / 云端 %d)
+  花费: $%.4f
+  节省: ~%d 分钟 (~%.1f 小时)
+
+本地使用率: %.0f%%`,
+		len(todayRecords), localToday, cloudToday, todayTotal,
+		len(monthRecords), localMonth, cloudMonth, monthTotal,
+		savedMinutes, float64(savedMinutes)/60,
+		safePercent(localMonth, len(monthRecords)),
+	)
+
+	gw.sendReply(msg, text)
+}
+
+func safePercent(part, total int) float64 {
+	if total == 0 { return 0 }
+	return float64(part) / float64(total) * 100
 }
 
 func (gw *Gateway) cmdExport(msg channel.Message) {

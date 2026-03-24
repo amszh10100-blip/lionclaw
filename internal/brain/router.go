@@ -152,13 +152,18 @@ func (r *DefaultRouter) assessComplexity(text string, history []ChatMessage) Com
 		"为什么", "分析", "比较", "设计", "架构", "策略", "深度",
 		"why", "analyze", "compare", "design", "implement", "architect",
 		"代码", "code", "debug", "优化", "重构", "算法",
-		"写一个", "开发", "研究", "报告", "总结全文",
+		"写一个", "写一段", "开发", "研究", "报告", "总结全文", "实现",
 	}
+	highHits := 0
 	for _, kw := range highKeywords {
 		if strings.Contains(strings.ToLower(text), kw) {
-			score += 2
-			break
+			highHits++
 		}
+	}
+	if highHits >= 2 {
+		score += 3 // 多个高复杂度关键词 = 一定是高复杂度
+	} else if highHits == 1 {
+		score += 2
 	}
 
 	// 简单消息检测
@@ -169,10 +174,10 @@ func (r *DefaultRouter) assessComplexity(text string, history []ChatMessage) Com
 		return ComplexityLow
 	}
 
-	if score >= 4 {
+	if score >= 3 {
 		return ComplexityHigh
 	}
-	if score >= 2 {
+	if score >= 1 {
 		return ComplexityMedium
 	}
 	return ComplexityLow

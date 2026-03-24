@@ -1,173 +1,92 @@
 # 🦁 LionClaw
 
-> **安全的个人 AI Agent** — OpenClaw 的安全替代品，5 分钟上手。
+> LionClaw — A secure, self-hosted personal AI Agent platform.
 
-[![Go](https://img.shields.io/badge/Go-1.23+-00ADD8?logo=go)](https://go.dev)
+[![CI](https://github.com/amszh10100-blip/lionclaw/actions/workflows/ci.yml/badge.svg)](https://github.com/amszh10100-blip/lionclaw/actions/workflows/ci.yml)
+[![Go](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://go.dev)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Security](https://img.shields.io/badge/Security-A+-gold)](#安全)
 
-## 为什么选择 LionClaw？
+## ✨ Feature Highlights
 
-| | OpenClaw 🦞 | LionClaw 🦁 |
-|---|---|---|
-| **安全** | 6 CVE，明文凭证 | AES-256 加密 + 零信任 |
-| **安装** | "三天配不好" | 一条命令，5 分钟上手 |
-| **成本** | 一句 hi 花 $11 | 本地优先，自动路由 |
-| **更新** | 更新后频繁崩溃 | 原子更新 + 自动回滚 |
-| **记忆** | 纯 Markdown | FTS5 全文搜索 |
+- **Telegram Bot Integration**: Chat natively using local or cloud LLMs.
+- **Smart Model Routing**: Zero-cost local Ollama models (e.g., Llama 3, Qwen) for simple tasks, cloud models (Opus) for complex reasoning.
+- **Full-Text Search Memory (FTS5)**: Fast SQLite-backed memory with automatic summarization and context compression.
+- **Security Scorecard**: Automated auditing of your setup and agent permissions.
+- **OpenClaw Migration Tool**: 1-click migration from OpenClaw, automatically securing plaintext credentials.
+- **Web UI**: Built-in authenticated dashboard for status and cost monitoring.
+- **Skill SDK**: Fully compatible with OpenClaw skills, running in isolated processes.
+- **User-Level Rate Limiting**: Prevent abuse and manage your daily token/cost budgets.
+- **Cost Tracking**: Real-time spending alerts and cost attribution per prompt.
 
-## 快速开始
+## 🚀 Quick Start
 
-### 安装
+### Installation
 
 ```bash
-# 从源码编译（需要 Go 1.23+）
-git clone https://github.com/lionclaw/lionclaw.git
+git clone https://github.com/amszh10100-blip/lionclaw.git
 cd lionclaw
 make build
+./bin/lionclaw
 ```
 
-### 配置
+## ⚙️ Configuration
+
+Start the interactive setup guide to configure your AI agent:
 
 ```bash
-# 交互式引导
 ./bin/lionclaw setup
 ```
 
-按提示输入：
-1. Telegram Bot Token（从 @BotFather 获取）
-2. API Key（可选，本地模型零成本）
-3. 自动检测硬件，推荐并下载最佳本地模型
+The wizard will help you:
+1. Set up your Telegram Bot Token.
+2. Configure your API keys (securely encrypted).
+3. Detect your hardware and recommend the best local models.
 
-### 启动
+Once configured, simply start the daemon:
 
 ```bash
 ./bin/lionclaw start
 ```
 
-打开 Telegram，给你的 Bot 发消息，开始对话！
+## 🏗️ Architecture Overview
 
-## 功能
+LionClaw is written in pure Go with zero external C dependencies except SQLite (`mattn/go-sqlite3`). It is designed for maximum security and minimal overhead.
 
-### 🛡️ 安全第一
+- **Startup time:** ~9ms
+- **Memory footprint:** ~18MB
+- **Search latency:** ~3ms
 
-- **凭证加密**：所有 API Key 使用 AES-256-GCM 加密，主密钥存 OS Keychain
-- **零信任网络**：Gateway 默认仅 `127.0.0.1`，外网不可访问
-- **Skill 隔离**：每个 Skill 在独立进程中运行（macOS sandbox-exec）
-- **权限声明**：Skill 必须声明所需权限，安装时可审查
+Key components include:
+- `brain/`: LLM abstraction layer with cost routing.
+- `memory/`: SQLite + FTS5 memory engine.
+- `gateway/`: Core event loop and command system.
+- `vault/`: AES-256-GCM encrypted credential storage.
 
-### 🧠 智能模型路由
+## 🛡️ Security Scorecard
 
+LionClaw automatically audits your setup and compares it against best practices. You can run an audit on any skill:
+
+```bash
+lionclaw skill audit <path>
 ```
-低复杂度 (你好/ok)     → 本地 8B 模型  ($0)
-中复杂度 (怎么做/帮我)  → 本地 32B 模型 ($0)
-高复杂度 (分析/设计)    → 云端 Opus     ($$)
-隐私内容 (密码/银行)    → 强制本地      ($0)
-```
 
-### 💰 成本透明
+**Scorecard Checks:**
+- Ensures API keys are encrypted in Vault, never plaintext.
+- Validates network bindings (defaults to `127.0.0.1`).
+- Verifies macOS sandbox/process isolation for Skills.
 
-- 每次回复显示：`⚡ 模型名 | $成本`
-- 日/月预算上限 + 80% 预警
-- `/cost` 实时查看花费
-- Web 仪表盘：`http://127.0.0.1:18790`
+## 🔄 Migration from OpenClaw
 
-### 🔍 记忆搜索
-
-- SQLite + FTS5 全文搜索
-- 跨会话记忆连续
-- 上下文自动压缩（超 40 条自动摘要）
-- `/search 关键词` 搜索历史对话
-- `/export` 导出为 Markdown
-
-### ⏰ 场景包
-
-预配置的自动化场景：
-
-| 场景 | 描述 | 命令 |
-|------|------|------|
-| ☀️ 晨间简报 | 每天 9:00 推送 | `/enable morning_brief` |
-| 🔧 GitHub 巡逻 | 每 2 小时检查 | `/enable github_patrol` |
-| 📅 会议助手 | 每小时提醒 | `/enable meeting_prep` |
-| 📊 周价值报告 | 每天 9:00 | `/enable weekly_report` |
-
-### 🔄 从 OpenClaw 迁移
+Migrating from OpenClaw takes less than a minute. We will automatically import your memory, skills, and configuration, while securing your plaintext credentials.
 
 ```bash
 ./bin/lionclaw migrate ~/.openclaw
 ```
 
-一键迁移：记忆 + Skills + 配置 + 自动修复明文凭证。
+## 🤝 Contributing
 
-## Telegram 命令
+We welcome contributions! Please check our [Contributing Guidelines](CONTRIBUTING.md) for more details on how to run tests, format code, and submit pull requests.
 
-| 命令 | 功能 |
-|------|------|
-| `/help` | 所有命令 |
-| `/status` | 系统状态 |
-| `/cost` | 成本统计 |
-| `/stats` | 详细统计 + 节省时间 |
-| `/model` | 模型配置 |
-| `/search <词>` | 搜索记忆 |
-| `/export` | 导出记忆 |
-| `/clear` | 清除会话 |
-| `/scenario` | 场景包列表 |
-| `/enable <名>` | 启用场景 |
-| `/disable <名>` | 停用场景 |
-| `/route <文本>` | 测试路由决策 |
+## 📄 License
 
-## CLI 命令
-
-```bash
-lionclaw start       # 启动 Gateway
-lionclaw setup       # 交互式配置
-lionclaw status      # 查看状态
-lionclaw cost        # 成本统计
-lionclaw skill create <name>   # 创建 Skill
-lionclaw skill list            # 列出 Skills
-lionclaw skill audit <path>    # 安全审计
-lionclaw vault set <key> <val> # 存储凭证
-lionclaw vault list            # 列出凭证
-lionclaw migrate <dir>         # 从 OpenClaw 迁移
-```
-
-## 开发
-
-```bash
-make build    # 编译（含 FTS5）
-make test     # 运行测试
-make fmt      # 格式化代码
-make cover    # 测试覆盖率
-```
-
-### 项目结构
-
-```
-internal/
-├── brain/        # LLM 抽象 (Ollama/Anthropic/OpenAI/路由/成本)
-├── channel/      # 渠道抽象 + Telegram
-├── config/       # 配置管理
-├── gateway/      # 核心网关 + 命令系统
-├── memory/       # SQLite + FTS5 + 压缩
-├── migrate/      # OpenClaw 迁移
-├── protocol/     # MCP 客户端
-├── scheduler/    # Cron 调度
-├── scorecard/    # 安全评分卡
-├── skill/        # Skill 管理 + SDK
-├── updater/      # 原子更新
-├── vault/        # 加密凭证
-└── webui/        # Web 仪表盘
-```
-
-## 安全
-
-- AES-256-GCM 凭证加密
-- macOS Keychain / Linux secret-service 主密钥
-- 默认 localhost 绑定
-- Skill 进程隔离 (sandbox-exec)
-- Skill 权限声明系统
-- 安全评分卡：`lionclaw migrate` 自动对比
-
-## License
-
-MIT
+This project is licensed under the [MIT License](LICENSE).

@@ -1,6 +1,6 @@
 .PHONY: build run test clean fmt lint
 
-VERSION := 0.1.0-dev
+VERSION := 2.0.0
 BINARY := lionclaw
 GOFLAGS := -tags "fts5" -ldflags="-s -w -X main.version=$(VERSION)"
 

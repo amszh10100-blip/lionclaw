@@ -69,7 +69,14 @@ func (gw *Gateway) handleCommand(msg channel.Message) {
 	case "/model":
 		gw.cmdModel(msg)
 
-	case "/scenario", "/scenarios":
+	case "/scenario":
+		if len(parts) > 1 {
+			gw.cmdSetScenario(msg, parts[1])
+		} else {
+			gw.cmdScenarios(msg)
+		}
+
+	case "/scenarios":
 		gw.cmdScenarios(msg)
 
 	case "/enable":
@@ -329,35 +336,46 @@ func (gw *Gateway) cmdTestRoute(msg channel.Message, testText string) {
 }
 
 func (gw *Gateway) cmdScenarios(msg channel.Message) {
-	scenarios := []struct {
-		name string
-		desc string
-		cron string
-	}{
-		{"morning_brief", "☀️ 晨间简报 — 每天 9:00 推送", "09:00"},
-		{"github_patrol", "🔧 GitHub 巡逻 — 每 2 小时", "*/120"},
-		{"meeting_prep", "📅 会议助手 — 每小时提醒", "*/60"},
-		{"weekly_report", "📊 周价值报告 — 每天 9:00", "09:00"},
-	}
-
 	var sb strings.Builder
-	sb.WriteString("📋 场景包管理\n\n")
+	sb.WriteString("📋 内置场景包列表\n\n")
 
-	for _, s := range scenarios {
-		status := "⏸ 未启用"
-		for _, j := range gw.scheduler.Jobs() {
-			if j.Name == s.name && j.Enabled {
-				status = "▶ 已启用"
-				break
-			}
-		}
-		sb.WriteString(fmt.Sprintf("%s\n  %s [%s]\n\n", s.desc, status, s.cron))
+	gw.mu.RLock()
+	activeName := gw.activeScenarios[msg.ChatID]
+	gw.mu.RUnlock()
+	if activeName == "" {
+		activeName = "assistant"
 	}
 
-	sb.WriteString("命令:\n/enable <名称>  启用\n/disable <名称> 停用\n\n")
-	sb.WriteString("名称: morning_brief / github_patrol / meeting_prep")
+	for _, sc := range builtinScenarios {
+		status := " "
+		if sc.Name == activeName {
+			status = "▶"
+		}
+		sb.WriteString(fmt.Sprintf("%s %s (%s)\n  %s\n\n", status, sc.DisplayName, sc.Name, sc.Description))
+	}
 
+	sb.WriteString("命令:\n/scenario <名称>  切换场景\n")
 	gw.sendReply(msg, sb.String())
+}
+
+func (gw *Gateway) cmdSetScenario(msg channel.Message, name string) {
+	found := false
+	for _, sc := range builtinScenarios {
+		if sc.Name == name {
+			found = true
+			break
+		}
+	}
+	if !found {
+		gw.sendReply(msg, fmt.Sprintf("❌ 未知场景: %s\n发送 /scenarios 查看可用场景", name))
+		return
+	}
+
+	gw.mu.Lock()
+	gw.activeScenarios[msg.ChatID] = name
+	gw.mu.Unlock()
+
+	gw.sendReply(msg, fmt.Sprintf("✅ 已切换至场景: %s", name))
 }
 
 func (gw *Gateway) cmdEnableScenario(msg channel.Message, name string, enable bool) {

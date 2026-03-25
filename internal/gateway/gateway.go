@@ -27,10 +27,11 @@ type Gateway struct {
 	memory    memory.Store
 	vault     vault.Vault
 	scheduler *scheduler.Scheduler
-	logger    *slog.Logger
-	mu        sync.RWMutex
-	rateLimit map[string][]time.Time // 用户速率限制
-	rateMu    sync.Mutex
+	logger          *slog.Logger
+	mu              sync.RWMutex
+	rateLimit       map[string][]time.Time // 用户速率限制
+	rateMu          sync.Mutex
+	activeScenarios map[string]string      // 用户活跃场景
 }
 
 // New 创建新的 Gateway 实例
@@ -78,14 +79,15 @@ func New(cfg *config.Config) (*Gateway, error) {
 	sched := scheduler.New(logger)
 
 	gw := &Gateway{
-		cfg:       cfg,
-		router:    modelRouter,
-		cost:      costTracker,
-		memory:    store,
-		vault:     v,
-		scheduler: sched,
-		logger:    logger,
-		rateLimit: make(map[string][]time.Time),
+		cfg:             cfg,
+		router:          modelRouter,
+		cost:            costTracker,
+		memory:          store,
+		vault:           v,
+		scheduler:       sched,
+		logger:          logger,
+		rateLimit:       make(map[string][]time.Time),
+		activeScenarios: make(map[string]string),
 	}
 
 	return gw, nil
@@ -198,7 +200,7 @@ func (gw *Gateway) handleMessage(msg channel.Message) {
 	}
 
 	// 3. 构建消息列表
-	messages := gw.buildMessages(history, msg.Text)
+	messages := gw.buildMessages(msg.ChatID, history, msg.Text)
 
 	// 4. 模型路由
 	provider, model, est, err := gw.router.Route(messages)
@@ -260,22 +262,27 @@ func (gw *Gateway) handleMessage(msg channel.Message) {
 	gw.sendReply(msg, reply)
 }
 
-func (gw *Gateway) buildMessages(history []memory.Entry, userText string) []brain.ChatMessage {
+func (gw *Gateway) buildMessages(chatID string, history []memory.Entry, userText string) []brain.ChatMessage {
+	sysPrompt := "你是 LionClaw 🦁，一个高效、直接的 AI 助手。先给答案再解释。全中文回复。" // fallback
+	gw.mu.RLock()
+	activeName := gw.activeScenarios[chatID]
+	gw.mu.RUnlock()
+
+	if activeName == "" {
+		activeName = "assistant"
+	}
+
+	for _, sc := range builtinScenarios {
+		if sc.Name == activeName {
+			sysPrompt = sc.SystemPrompt
+			break
+		}
+	}
+
 	messages := []brain.ChatMessage{
 		{
-			Role: brain.RoleSystem,
-			Content: `你是 LionClaw 🦁，一个安全的个人 AI Agent。
-
-核心特点：
-- 安全第一：你的凭证全部加密存储，数据本地优先
-- 直接有用：先给答案，再给解释
-- 成本透明：你会告诉用户每次对话花了多少钱
-
-规则：
-- 用中文回复
-- 简洁实用，不说废话
-- 有自己的性格：自信、直接、偶尔幽默
-- 绝不编造信息，不确定就说不确定`,
+			Role:    brain.RoleSystem,
+			Content: sysPrompt,
 		},
 	}
 

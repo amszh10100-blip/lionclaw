@@ -2,8 +2,8 @@ package updater
 
 import (
 	"context"
-	"github.com/lionclaw/lionclaw/internal/config"
 	"fmt"
+	"github.com/lionclaw/lionclaw/internal/config"
 	"io"
 	"log/slog"
 	"net/http"
@@ -17,7 +17,7 @@ import (
 
 // Updater 原子更新系统
 type Updater struct {
-	cfg *config.Config
+	cfg        *config.Config
 	installDir string // ~/.lionclaw
 	logger     *slog.Logger
 }
@@ -244,3 +244,6 @@ func copyFile(src, dst string) error {
 	_, err = io.Copy(d, s)
 	return err
 }
+
+// CompareVersions 比较两个版本号字符串
+// 返回 -1 (v1 < v2), 0 (v1 == v2), 1 (v1 > v2)

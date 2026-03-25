@@ -11,24 +11,36 @@ import (
 
 	"github.com/lionclaw/lionclaw/internal/brain"
 	"github.com/lionclaw/lionclaw/internal/config"
+	"github.com/lionclaw/lionclaw/internal/memory"
 )
 
 // Server 内嵌 Web UI 服务器
 type Server struct {
-	cfg    *config.Config
-	cost   brain.CostTracker
-	logger *slog.Logger
-	srv    *http.Server
+	cfg          *config.Config
+	cost         brain.CostTracker
+	logger       *slog.Logger
+	srv          *http.Server
+	memory       memory.Store
+	startTime    time.Time
+	scenarioFunc func() string
 }
 
 // New 创建 Web UI 服务器
-func New(cfg *config.Config, cost brain.CostTracker, logger *slog.Logger) *Server {
-	s := &Server{cfg: cfg, cost: cost, logger: logger}
+func New(cfg *config.Config, cost brain.CostTracker, mem memory.Store, getScenario func() string, logger *slog.Logger) *Server {
+	s := &Server{
+		cfg:          cfg,
+		cost:         cost,
+		logger:       logger,
+		memory:       mem,
+		startTime:    time.Now(),
+		scenarioFunc: getScenario,
+	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", s.basicAuth(s.handleDashboard))
 	mux.HandleFunc("/api/status", s.basicAuth(s.handleAPIStatus))
 	mux.HandleFunc("/api/cost", s.basicAuth(s.handleAPICost))
+	mux.HandleFunc("/api/history", s.basicAuth(s.handleAPIHistory))
 
 	s.srv = &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", cfg.Security.Bind, cfg.Security.Port),
@@ -112,9 +124,34 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	savedHours := float64(len(monthRecords)*2) / 60
+	uptime := time.Since(s.startTime).Round(time.Second)
+
+	history, _ := s.memory.GetRecent(10)
+	var historyHTML string
+	for _, e := range history {
+		content := e.Content
+		if len(content) > 100 {
+			content = content[:100] + "..."
+		}
+		roleColor := "#888"
+		if e.Role == "user" {
+			roleColor = "#4caf50"
+		} else if e.Role == "assistant" {
+			roleColor = "#f5a623"
+		}
+		historyHTML += fmt.Sprintf(`<div style="margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid #222;">
+			<div style="font-size: 0.8rem; color: %s; margin-bottom: 0.2rem;">[%s] %s %s</div>
+			<div style="font-size: 0.9rem;">%s</div>
+		</div>`, roleColor, e.CreatedAt.Format("15:04"), e.Role, e.Model, content)
+	}
+	if historyHTML == "" {
+		historyHTML = "<div style='color: #888;'>暂无对话记录</div>"
+	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprintf(w, dashboardHTML,
+		// 状态
+		uptime.String(), s.scenarioFunc(),
 		// 今日
 		len(todayRecords), localToday, cloudToday, todayTotal,
 		s.cfg.Cost.DailyLimitUSD-todayTotal,
@@ -123,6 +160,8 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 		// 配置
 		s.cfg.Models.Local.Models.Small, s.cfg.Models.Local.Models.Large,
 		s.cfg.Security.Bind, s.cfg.Security.Port,
+		// 历史
+		historyHTML,
 		// 时间
 		time.Now().Format("2006-01-02 15:04:05"),
 	)
@@ -133,7 +172,8 @@ func (s *Server) handleAPIStatus(w http.ResponseWriter, r *http.Request) {
 
 	status := map[string]interface{}{
 		"version":       "0.1.0-dev",
-		"uptime":        time.Now().Format(time.RFC3339),
+		"uptime":        time.Since(s.startTime).String(),
+		"active_scene":  s.scenarioFunc(),
 		"today_calls":   len(todayRecords),
 		"today_cost":    todayTotal,
 		"daily_budget":  s.cfg.Cost.DailyLimitUSD,
@@ -159,6 +199,16 @@ func (s *Server) handleAPICost(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)
+}
+
+func (s *Server) handleAPIHistory(w http.ResponseWriter, r *http.Request) {
+	history, err := s.memory.GetRecent(10)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(history)
 }
 
 const dashboardHTML = `<!DOCTYPE html>
@@ -187,7 +237,7 @@ const dashboardHTML = `<!DOCTYPE html>
     background: #1a1a1a; border: 1px solid #333;
     border-radius: 12px; padding: 1.5rem;
   }
-  .card h2 { color: #f5a623; font-size: 1rem; margin-bottom: 1rem; }
+  .card h2 { color: #f5a623; font-size: 1rem; margin-bottom: 1rem; border-bottom: 1px solid #333; padding-bottom: 0.5rem; }
   .stat { font-size: 2rem; font-weight: bold; color: #fff; }
   .stat-label { color: #888; font-size: 0.85rem; margin-top: 0.25rem; }
   .stat-row {
@@ -203,6 +253,7 @@ const dashboardHTML = `<!DOCTYPE html>
     background: #1b5e20; color: #4caf50;
   }
   .footer { text-align: center; margin-top: 2rem; color: #555; font-size: 0.8rem; }
+  .full-width { grid-column: 1 / -1; }
 </style>
 </head>
 <body>
@@ -212,6 +263,12 @@ const dashboardHTML = `<!DOCTYPE html>
 </div>
 
 <div class="grid">
+  <div class="card">
+    <h2>⚡ 运行状态</h2>
+    <div class="stat-row"><span>运行时间</span><span class="green">%s</span></div>
+    <div class="stat-row"><span>当前场景</span><span class="gold">%s</span></div>
+  </div>
+
   <div class="card">
     <h2>📊 今日统计</h2>
     <div class="stat">%d <span style="font-size:1rem;color:#888">次对话</span></div>
@@ -233,15 +290,13 @@ const dashboardHTML = `<!DOCTYPE html>
     <h2>🧠 模型配置</h2>
     <div class="stat-row"><span>本地(小)</span><span>%s</span></div>
     <div class="stat-row"><span>本地(大)</span><span>%s</span></div>
-    <div class="stat-row"><span>路由</span><span><span class="badge">自动</span></span></div>
+    <div class="stat-row"><span>安全评分</span><span class="gold">A+</span></div>
+    <div class="stat-row"><span>网络绑定</span><span class="green">%s:%d ✅</span></div>
   </div>
 
-  <div class="card">
-    <h2>🛡️ 安全状态</h2>
-    <div class="stat-row"><span>凭证存储</span><span class="green">AES-256 ✅</span></div>
-    <div class="stat-row"><span>网络绑定</span><span class="green">%s:%d ✅</span></div>
-    <div class="stat-row"><span>Skill 隔离</span><span class="green">进程隔离 ✅</span></div>
-    <div class="stat-row"><span>安全评分</span><span class="gold">A+</span></div>
+  <div class="card full-width" style="max-height: 400px; overflow-y: auto;">
+    <h2>💬 最近对话</h2>
+    %s
   </div>
 </div>
 

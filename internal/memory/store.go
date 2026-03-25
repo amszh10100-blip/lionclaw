@@ -29,6 +29,7 @@ type Entry struct {
 type Store interface {
 	SaveMessage(sessionID string, entry Entry) error
 	GetHistory(sessionID string, limit int) ([]Entry, error)
+	GetRecent(limit int) ([]Entry, error)
 	Search(query string, limit int) ([]Entry, error)
 	ExportMarkdown(path string) error
 	ImportMarkdown(path string) error
@@ -121,6 +122,34 @@ func (s *SQLiteStore) GetHistory(sessionID string, limit int) ([]Entry, error) {
 	// 反转顺序（最旧的在前）
 	for i, j := 0, len(entries)-1; i < j; i, j = i+1, j-1 {
 		entries[i], entries[j] = entries[j], entries[i]
+	}
+
+	return entries, nil
+}
+
+func (s *SQLiteStore) GetRecent(limit int) ([]Entry, error) {
+	rows, err := s.db.Query(
+		`SELECT id, session_id, role, content, summary, tokens, model, cost_usd, created_at
+		 FROM messages ORDER BY created_at DESC LIMIT ?`, limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var entries []Entry
+	for rows.Next() {
+		var e Entry
+		var ts string
+		if err := rows.Scan(&e.ID, &e.SessionID, &e.Role, &e.Content, &e.Summary, &e.Tokens, &e.Model, &e.CostUSD, &ts); err != nil {
+			continue
+		}
+		if t, err := time.Parse("2006-01-02 15:04:05", ts); err != nil {
+			e.CreatedAt = time.Now()
+		} else {
+			e.CreatedAt = t
+		}
+		entries = append(entries, e)
 	}
 
 	return entries, nil

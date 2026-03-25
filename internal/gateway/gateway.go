@@ -110,7 +110,14 @@ func (gw *Gateway) Run(ctx context.Context) error {
 	}
 
 	// 启动 Web UI
-	web := webui.New(gw.cfg, gw.cost, gw.logger)
+	web := webui.New(gw.cfg, gw.cost, gw.memory, func() string {
+		gw.mu.RLock()
+		defer gw.mu.RUnlock()
+		for _, sc := range gw.activeScenarios {
+			return sc // return any active
+		}
+		return "assistant"
+	}, gw.logger)
 	go func() {
 		if err := web.Start(ctx); err != nil {
 			gw.logger.Error("Web UI 启动失败", "error", err)

@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  lionclaw:
+    build: .
+    ports:
+      - "18790:18790"
+    volumes:
+      - ./data:/data
+    environment:
+      - OLLAMA_HOST=http://host.docker.internal:11434
+    restart: unless-stopped

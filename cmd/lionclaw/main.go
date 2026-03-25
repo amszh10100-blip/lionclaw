@@ -308,11 +308,29 @@ Commands:
 			if !e.IsDir() {
 				continue
 			}
-			mPath := filepath.Join(skillDir, e.Name(), "skill.yaml")
+			skillPath := filepath.Join(skillDir, e.Name())
+			mPath := filepath.Join(skillPath, "skill.yaml")
 			if _, err := os.Stat(mPath); err != nil {
 				continue
 			}
-			fmt.Printf("  📦 %s\n", e.Name())
+			
+			// Audit and rate
+			results, err := skill.Audit(skillPath)
+			warnings, errors := 0, 0
+			if err == nil {
+				for _, r := range results {
+					if r.Status == "warn" {
+						warnings++
+					} else if r.Status == "error" {
+						errors++
+					}
+				}
+			} else {
+				errors++
+			}
+			
+			score := skill.SecurityScore(warnings, errors)
+			fmt.Printf("  📦 %-15s %s\n", e.Name(), skill.FormatScore(score))
 			count++
 		}
 		if count == 0 {

@@ -3,15 +3,26 @@ package gateway
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/lionclaw/lionclaw/internal/brain"
 	"github.com/lionclaw/lionclaw/internal/channel"
 	"github.com/lionclaw/lionclaw/internal/config"
 	"github.com/lionclaw/lionclaw/internal/scheduler"
+	"github.com/lionclaw/lionclaw/internal/audit"
 )
 
 // handleCommand 处理 /命令
 func (gw *Gateway) handleCommand(msg channel.Message) {
+
+	if gw.audit != nil {
+		_ = gw.audit.Log(audit.Entry{
+			Timestamp: time.Now(),
+			UserID:    msg.UserID,
+			Action:    "command",
+			Detail:    msg.Text,
+		})
+	}
 	parts := strings.Fields(msg.Text)
 	cmd := strings.ToLower(parts[0])
 
@@ -59,6 +70,9 @@ func (gw *Gateway) handleCommand(msg channel.Message) {
 🌐 Web UI: http://127.0.0.1:18790
 
 直接发消息即可对话，无需命令。`)
+
+	case "/audit":
+		gw.cmdAudit(msg)
 
 	case "/status":
 		gw.cmdStatus(msg)
@@ -467,4 +481,52 @@ func (gw *Gateway) cmdEnableScenario(msg channel.Message, name string, enable bo
 		}
 		gw.sendReply(msg, fmt.Sprintf("⏸ 场景 %s 已停用", name))
 	}
+}
+
+func (gw *Gateway) cmdAudit(msg channel.Message) {
+	if gw.audit == nil {
+		gw.sendReply(msg, "❌ 审计日志系统未初始化")
+		return
+	}
+
+	since := time.Now().Add(-24 * time.Hour) // default 1 day
+	entries, err := gw.audit.Query(since, 20)
+	if err != nil {
+		gw.sendReply(msg, fmt.Sprintf("❌ 查询审计日志失败: %v", err))
+		return
+	}
+
+	if len(entries) == 0 {
+		gw.sendReply(msg, "📋 审计日志 (最近20条)\n无记录")
+		return
+	}
+
+	var sb strings.Builder
+	sb.WriteString("📋 审计日志 (最近20条)\n")
+	for _, e := range entries {
+		// [10:30] user123 chat "你好" qwen3:8b 150→45 $0
+		// [10:29] user123 command "/status" - - $0
+		tStr := e.Timestamp.Format("15:04")
+		modelStr := e.Model
+		if modelStr == "" {
+			modelStr = "-"
+		}
+		tokensStr := fmt.Sprintf("%d→%d", e.TokensIn, e.TokensOut)
+		if e.Action == "command" {
+			tokensStr = "-"
+		}
+		costStr := fmt.Sprintf("$%.4f", e.Cost)
+		if e.Cost == 0 {
+			costStr = "$0"
+		}
+		
+		detail := e.Detail
+		if len(detail) > 20 {
+			detail = detail[:17] + "..."
+		}
+		
+		sb.WriteString(fmt.Sprintf("[%s] %s %s %q %s %s %s\n", tStr, e.UserID, e.Action, detail, modelStr, tokensStr, costStr))
+	}
+
+	gw.sendReply(msg, sb.String())
 }

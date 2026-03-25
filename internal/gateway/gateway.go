@@ -16,17 +16,19 @@ import (
 	"github.com/lionclaw/lionclaw/internal/scheduler"
 	"github.com/lionclaw/lionclaw/internal/vault"
 	"github.com/lionclaw/lionclaw/internal/webui"
+	"github.com/lionclaw/lionclaw/internal/audit"
 )
 
 // Gateway 是 LionClaw 的核心网关
 type Gateway struct {
-	cfg       *config.Config
-	channels  []channel.Channel
-	router    *brain.DefaultRouter
-	cost      brain.CostTracker
-	memory    memory.Store
-	vault     vault.Vault
-	scheduler *scheduler.Scheduler
+	cfg             *config.Config
+	channels        []channel.Channel
+	router          *brain.DefaultRouter
+	cost            brain.CostTracker
+	memory          memory.Store
+	vault           vault.Vault
+	scheduler       *scheduler.Scheduler
+	audit           *audit.Logger
 	logger          *slog.Logger
 	mu              sync.RWMutex
 	rateLimit       map[string][]time.Time // 用户速率限制
@@ -62,6 +64,12 @@ func New(cfg *config.Config) (*Gateway, error) {
 		return nil, fmt.Errorf("初始化模型路由失败: %w", err)
 	}
 
+	// 初始化审计日志
+	auditLogger, err := audit.NewLogger(config.DataDir())
+	if err != nil {
+		return nil, fmt.Errorf("初始化审计日志失败: %w", err)
+	}
+
 	// 配置云端模型（优先 Anthropic，其次 OpenAI）
 	if cfg.Models.Cloud.Anthropic.Enabled && v.Has("ANTHROPIC_API_KEY") {
 		apiKey, _ := v.Get("ANTHROPIC_API_KEY")
@@ -85,6 +93,7 @@ func New(cfg *config.Config) (*Gateway, error) {
 		memory:          store,
 		vault:           v,
 		scheduler:       sched,
+		audit:           auditLogger,
 		logger:          logger,
 		rateLimit:       make(map[string][]time.Time),
 		activeScenarios: make(map[string]string),
@@ -250,6 +259,24 @@ func (gw *Gateway) handleMessage(msg channel.Message) {
 	// 7. 保存到记忆
 	gw.saveToMemory(msg.ChatID, "user", msg.Text, 0, "", 0)
 	gw.saveToMemory(msg.ChatID, "assistant", resp.Content, resp.InputTokens+resp.OutputTokens, resp.Model, resp.CostUSD)
+
+	// 8. 记录审计日志
+	detail := msg.Text
+	if len(detail) > 100 {
+		detail = detail[:97] + "..."
+	}
+	if gw.audit != nil {
+		_ = gw.audit.Log(audit.Entry{
+			Timestamp: time.Now(),
+			UserID:    msg.UserID,
+			Action:    "chat",
+			Detail:    detail,
+			Model:     resp.Model,
+			TokensIn:  resp.InputTokens,
+			TokensOut: resp.OutputTokens,
+			Cost:      resp.CostUSD,
+		})
+	}
 
 	// 8. 预算预警检查
 	gw.checkBudgetWarning(msg, resp.CostUSD)

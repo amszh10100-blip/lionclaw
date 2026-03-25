@@ -49,6 +49,13 @@ func (r *Runner) Run(ctx context.Context, m Manifest, input string, env map[stri
 		return nil, fmt.Errorf("Skill 入口不存在: %s", entrypoint)
 	}
 
+	// 工作目录隔离
+	workDir, err := os.MkdirTemp("", "skill_run_*")
+	if err != nil {
+		return nil, fmt.Errorf("创建临时工作目录失败: %w", err)
+	}
+	defer os.RemoveAll(workDir)
+
 	// 构建命令
 	ctx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
@@ -65,7 +72,7 @@ func (r *Runner) Run(ctx context.Context, m Manifest, input string, env map[stri
 	}
 
 	// 设置环境变量——只传入声明的
-	cmd.Env = r.buildEnv(m, env)
+	cmd.Env = r.buildEnv(m, env, input, workDir)
 
 	// 通过 stdin 传入输入
 	cmd.Stdin = strings.NewReader(input)
@@ -74,8 +81,6 @@ func (r *Runner) Run(ctx context.Context, m Manifest, input string, env map[stri
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	// 工作目录隔离
-	workDir := filepath.Join(r.skillDir, m.Name)
 	cmd.Dir = workDir
 
 	r.logger.Info("执行 Skill",
@@ -84,7 +89,7 @@ func (r *Runner) Run(ctx context.Context, m Manifest, input string, env map[stri
 		"timeout", r.timeout,
 	)
 
-	err := cmd.Run()
+	err = cmd.Run()
 	duration := time.Since(start)
 
 	result := &RunResult{
@@ -116,12 +121,11 @@ func (r *Runner) Run(ctx context.Context, m Manifest, input string, env map[stri
 	return result, nil
 }
 
-// buildEnv 构建受限的环境变量
-func (r *Runner) buildEnv(m Manifest, extra map[string]string) []string {
+func (r *Runner) buildEnv(m Manifest, extra map[string]string, input string, workDir string) []string {
 	env := []string{
-		"PATH=/usr/bin:/bin:/usr/local/bin",
-		"HOME=" + filepath.Join(r.skillDir, m.Name),
-		"LANG=en_US.UTF-8",
+		"PATH=" + os.Getenv("PATH"),
+		"HOME=" + workDir,
+		"SKILL_INPUT=" + input,
 	}
 
 	// 只传入 Skill 声明需要的凭证

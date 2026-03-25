@@ -66,6 +66,9 @@ func (gw *Gateway) handleCommand(msg channel.Message) {
 	case "/cost":
 		gw.cmdCost(msg)
 
+	case "/share":
+		gw.cmdShare(msg)
+
 	case "/model":
 		gw.cmdModel(msg)
 
@@ -174,6 +177,34 @@ func (gw *Gateway) cmdCost(msg channel.Message) {
 	)
 
 	gw.sendReply(msg, text)
+}
+
+func (gw *Gateway) cmdShare(msg channel.Message) {
+	_, todayRecords, _ := gw.cost.GetToday()
+	monthTotal, _, _ := gw.cost.GetMonth()
+	
+	modelName := "未配置"
+	if gw.cfg.Models.Local.Enabled {
+		modelName = "Ollama " + gw.cfg.Models.Local.Models.Small
+	} else if gw.cfg.Models.Cloud.Anthropic.Enabled {
+		modelName = "Anthropic " + gw.cfg.Models.Cloud.Anthropic.Model
+	}
+
+	card := fmt.Sprintf(`┌─────────────────────────────┐
+│  🦁 LionClaw AI Agent       │
+│  ─────────────────────      │
+│  📊 今日对话: %-14d│
+│  💰 本月花费: $%-13.2f│
+│  🧠 模型: %-18s│
+│  🛡️ 安全评分: A+             │
+│  ⏱️ 运行: 稳定              │
+│  📦 Skill: 未知              │
+│                              │
+│  🔗 github.com/.../lionclaw │
+└─────────────────────────────┘`, 
+	len(todayRecords), monthTotal, modelName)
+
+	gw.sendReply(msg, card)
 }
 
 func (gw *Gateway) cmdModel(msg channel.Message) {

@@ -9,7 +9,9 @@ import (
 	"strings"
 	"syscall"
 
+	"encoding/json"
 	"log/slog"
+	"net/http"
 	"path/filepath"
 
 	"github.com/lionclaw/lionclaw/internal/brain"
@@ -159,8 +161,30 @@ func cmdSetup() {
 	}
 
 	// Step 3: 本地模型
-	fmt.Println("\n③ 本地模型 (Ollama)")
-	fmt.Printf("   端点: %s\n", cfg.Models.Local.Endpoint)
+	fmt.Print("\n③ 本地模型 (Ollama) — 自动探测中...")
+	endpoint := cfg.Models.Local.Endpoint
+	resp, err := http.Get(endpoint + "/api/tags")
+	if err == nil && resp.StatusCode == 200 {
+		defer resp.Body.Close()
+		fmt.Println(" ✅ 已连接")
+		fmt.Printf("   端点: %s\n", endpoint)
+
+		var body struct {
+			Models []struct {
+				Name string `json:"name"`
+			} `json:"models"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&body); err == nil && len(body.Models) > 0 {
+			fmt.Println("   已安装模型:")
+			for _, m := range body.Models {
+				fmt.Printf("     - %s\n", m.Name)
+			}
+		}
+	} else {
+		fmt.Println(" ❌ 未检测到")
+		fmt.Println("   安装 Ollama: https://ollama.ai")
+		fmt.Println("   安装后运行: ollama pull qwen3:8b")
+	}
 	fmt.Printf("   小模型: %s | 大模型: %s\n", cfg.Models.Local.Models.Small, cfg.Models.Local.Models.Large)
 	fmt.Println("   ✅ 默认配置已就绪")
 

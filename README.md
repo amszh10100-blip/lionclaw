@@ -1,92 +1,129 @@
+<div align="center">
+
 # 🦁 LionClaw
 
-> LionClaw — A secure, self-hosted personal AI Agent platform.
+**A secure, self-hosted personal AI Agent platform.**
 
-[![CI](https://github.com/amszh10100-blip/lionclaw/actions/workflows/ci.yml/badge.svg)](https://github.com/amszh10100-blip/lionclaw/actions/workflows/ci.yml)
-[![Go](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://go.dev)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![CI](https://github.com/amszh10100-blip/lionclaw/actions/workflows/ci.yml/badge.svg)](https://github.com/amszh10100-blip/lionclaw/actions)
+[![Go](https://img.shields.io/badge/Go-1.25-blue.svg)](https://go.dev)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-## ✨ Feature Highlights
+*Your AI, your hardware, your data. Zero cloud dependency.*
 
-- **Telegram Bot Integration**: Chat natively using local or cloud LLMs.
-- **Smart Model Routing**: Zero-cost local Ollama models (e.g., Llama 3, Qwen) for simple tasks, cloud models (Opus) for complex reasoning.
-- **Full-Text Search Memory (FTS5)**: Fast SQLite-backed memory with automatic summarization and context compression.
-- **Security Scorecard**: Automated auditing of your setup and agent permissions.
-- **OpenClaw Migration Tool**: 1-click migration from OpenClaw, automatically securing plaintext credentials.
-- **Web UI**: Built-in authenticated dashboard for status and cost monitoring.
-- **Skill SDK**: Fully compatible with OpenClaw skills, running in isolated processes.
-- **User-Level Rate Limiting**: Prevent abuse and manage your daily token/cost budgets.
-- **Cost Tracking**: Real-time spending alerts and cost attribution per prompt.
+</div>
+
+---
+
+## ✨ Why LionClaw?
+
+| Feature | LionClaw | Others |
+|---------|----------|--------|
+| 🔐 Encrypted credential vault | ✅ AES-256-GCM + Keychain | ❌ Plaintext |
+| 🏠 Local-first (Ollama) | ✅ Zero API cost | ❌ Cloud required |
+| 🎭 5 Built-in Scenarios | ✅ Switch with `/scenario` | ❌ Manual prompts |
+| 🛡️ Skill Sandbox | ✅ Timeout + env isolation | ❌ Unrestricted |
+| 📊 Audit Logging | ✅ Full operation history | ❌ None |
+| 💰 Cost Tracking | ✅ Per-model breakdown | ❌ Limited |
+| 🔄 One-click Migration | ✅ From OpenClaw | — |
 
 ## 🚀 Quick Start
 
-### Installation
+### Docker (Recommended)
+
+```bash
+git clone https://github.com/amszh10100-blip/lionclaw.git
+cd lionclaw
+docker compose up -d
+```
+
+### From Source
 
 ```bash
 git clone https://github.com/amszh10100-blip/lionclaw.git
 cd lionclaw
 make build
-./bin/lionclaw
+./bin/lionclaw setup    # Interactive setup wizard
+./bin/lionclaw start    # Start the gateway
 ```
 
-## ⚙️ Configuration
-
-Start the interactive setup guide to configure your AI agent:
+### Homebrew (coming soon)
 
 ```bash
-./bin/lionclaw setup
+brew tap amszh10100-blip/tap
+brew install lionclaw
 ```
 
-The wizard will help you:
-1. Set up your Telegram Bot Token.
-2. Configure your API keys (securely encrypted).
-3. Detect your hardware and recommend the best local models.
+## 🎭 Built-in Scenarios
 
-Once configured, simply start the daemon:
+| Scenario | Command | Description |
+|----------|---------|-------------|
+| 🤖 Assistant | `/scenario assistant` | General-purpose AI helper |
+| 🌐 Translator | `/scenario translator` | Auto Chinese↔English |
+| 💻 Coder | `/scenario coder` | Code, debug, review |
+| ✍️ Writer | `/scenario writer` | Copy, emails, reports |
+| 📊 Daily Report | `/scenario daily` | Work report generator |
 
-```bash
-./bin/lionclaw start
+## 📋 Commands
+
+| Command | Description |
+|---------|-------------|
+| `/start` | Welcome + register |
+| `/status` | System status |
+| `/cost` | Usage & cost breakdown |
+| `/model` | Switch AI model |
+| `/scenario` | Switch scenario |
+| `/search` | Full-text search history |
+| `/share` | Generate shareable status card |
+| `/audit` | View operation audit log |
+| `/export` | Export chat history |
+| `/clear` | Clear session |
+
+## 🏗️ Architecture
+
+```
+lionclaw/
+├── cmd/lionclaw/     # CLI entry point
+├── internal/
+│   ├── audit/        # 📋 Operation audit logging
+│   ├── brain/        # 🧠 AI model router (Ollama/OpenAI/Anthropic)
+│   ├── channel/      # 💬 Telegram bot integration
+│   ├── config/       # ⚙️ YAML configuration
+│   ├── gateway/      # 🔀 Message gateway + commands
+│   ├── memory/       # 🗄️ SQLite + FTS5 memory engine
+│   ├── migrate/      # 🔄 OpenClaw migration tool
+│   ├── protocol/     # 🔌 MCP protocol client
+│   ├── scheduler/    # ⏰ Scheduled tasks
+│   ├── scorecard/    # 🛡️ Security scorecard
+│   ├── skill/        # 📦 Skill SDK + sandbox
+│   ├── updater/      # 🔄 Self-update mechanism
+│   ├── vault/        # 🔐 Encrypted credential store
+│   └── webui/        # 🌐 Web dashboard
+├── Dockerfile
+├── docker-compose.yml
+└── Makefile
 ```
 
-## 🏗️ Architecture Overview
+## 🔐 Security
 
-LionClaw is written in pure Go with zero external C dependencies except SQLite (`mattn/go-sqlite3`). It is designed for maximum security and minimal overhead.
+- **Vault**: AES-256-GCM encryption, macOS Keychain / Linux env-derived keys
+- **Skill Sandbox**: 30s timeout, env whitelist, isolated working directory
+- **Web UI**: Mandatory authentication (configurable via env)
+- **Audit Trail**: Every AI operation logged with timestamp, model, tokens, cost
 
-- **Startup time:** ~9ms
-- **Memory footprint:** ~18MB
-- **Search latency:** ~3ms
-
-Key components include:
-- `brain/`: LLM abstraction layer with cost routing.
-- `memory/`: SQLite + FTS5 memory engine.
-- `gateway/`: Core event loop and command system.
-- `vault/`: AES-256-GCM encrypted credential storage.
-
-## 🛡️ Security Scorecard
-
-LionClaw automatically audits your setup and compares it against best practices. You can run an audit on any skill:
+## 🛠️ Configuration
 
 ```bash
-lionclaw skill audit <path>
-```
-
-**Scorecard Checks:**
-- Ensures API keys are encrypted in Vault, never plaintext.
-- Validates network bindings (defaults to `127.0.0.1`).
-- Verifies macOS sandbox/process isolation for Skills.
-
-## 🔄 Migration from OpenClaw
-
-Migrating from OpenClaw takes less than a minute. We will automatically import your memory, skills, and configuration, while securing your plaintext credentials.
-
-```bash
-./bin/lionclaw migrate ~/.openclaw
+# Environment variables
+OLLAMA_HOST=http://127.0.0.1:11434    # Ollama endpoint
+LIONCLAW_WEBUI_USER=admin              # Web UI username
+LIONCLAW_WEBUI_PASS=your-password      # Web UI password
+LIONCLAW_MASTER_KEY=your-key           # Linux vault encryption key
 ```
 
 ## 🤝 Contributing
 
-We welcome contributions! Please check our [Contributing Guidelines](CONTRIBUTING.md) for more details on how to run tests, format code, and submit pull requests.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
+MIT — see [LICENSE](LICENSE)

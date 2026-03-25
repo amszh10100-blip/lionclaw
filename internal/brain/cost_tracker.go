@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/lionclaw/lionclaw/internal/config"
+	"github.com/amszh10100-blip/lionclaw/internal/config"
 	_ "github.com/mattn/go-sqlite3"
 )
 

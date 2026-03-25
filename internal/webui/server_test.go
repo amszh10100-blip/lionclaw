@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"github.com/lionclaw/lionclaw/internal/config"
-	"github.com/lionclaw/lionclaw/internal/brain"
-	"github.com/lionclaw/lionclaw/internal/memory"
+	"github.com/amszh10100-blip/lionclaw/internal/config"
+	"github.com/amszh10100-blip/lionclaw/internal/brain"
+	"github.com/amszh10100-blip/lionclaw/internal/memory"
 )
 
 type MockCostTracker struct{}

@@ -3,7 +3,7 @@ package brain
 import (
 	"testing"
 
-	"github.com/lionclaw/lionclaw/internal/config"
+	"github.com/amszh10100-blip/lionclaw/internal/config"
 )
 
 func TestCostTracker_RecordAndGet(t *testing.T) {

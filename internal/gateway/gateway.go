@@ -8,15 +8,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/lionclaw/lionclaw/internal/brain"
-	"github.com/lionclaw/lionclaw/internal/channel"
-	channeltg "github.com/lionclaw/lionclaw/internal/channel/telegram"
-	"github.com/lionclaw/lionclaw/internal/config"
-	"github.com/lionclaw/lionclaw/internal/memory"
-	"github.com/lionclaw/lionclaw/internal/scheduler"
-	"github.com/lionclaw/lionclaw/internal/vault"
-	"github.com/lionclaw/lionclaw/internal/webui"
-	"github.com/lionclaw/lionclaw/internal/audit"
+	"github.com/amszh10100-blip/lionclaw/internal/brain"
+	"github.com/amszh10100-blip/lionclaw/internal/channel"
+	channeltg "github.com/amszh10100-blip/lionclaw/internal/channel/telegram"
+	"github.com/amszh10100-blip/lionclaw/internal/config"
+	"github.com/amszh10100-blip/lionclaw/internal/memory"
+	"github.com/amszh10100-blip/lionclaw/internal/scheduler"
+	"github.com/amszh10100-blip/lionclaw/internal/vault"
+	"github.com/amszh10100-blip/lionclaw/internal/webui"
+	"github.com/amszh10100-blip/lionclaw/internal/audit"
 )
 
 // Gateway 是 LionClaw 的核心网关
@@ -34,6 +34,7 @@ type Gateway struct {
 	rateLimit       map[string][]time.Time // 用户速率限制
 	rateMu          sync.Mutex
 	activeScenarios map[string]string      // 用户活跃场景
+	modelOverrides  map[string]string      // 用户手动模型覆盖
 }
 
 // New 创建新的 Gateway 实例
@@ -97,6 +98,7 @@ func New(cfg *config.Config) (*Gateway, error) {
 		logger:          logger,
 		rateLimit:       make(map[string][]time.Time),
 		activeScenarios: make(map[string]string),
+		modelOverrides:  make(map[string]string),
 	}
 
 	return gw, nil
@@ -218,8 +220,25 @@ func (gw *Gateway) handleMessage(msg channel.Message) {
 	// 3. 构建消息列表
 	messages := gw.buildMessages(msg.ChatID, history, msg.Text)
 
-	// 4. 模型路由
-	provider, model, est, err := gw.router.Route(messages)
+	// 4. 模型路由（检查手动覆盖）
+	var provider brain.LLMProvider
+	var model string
+	var est brain.CostEstimate
+
+	gw.mu.RLock()
+	override := gw.modelOverrides[msg.ChatID]
+	gw.mu.RUnlock()
+
+	if override != "" {
+		// 手动指定模型
+		provider, model, est, err = gw.router.RouteToModel(override)
+		if err != nil {
+			gw.logger.Warn("手动模型不可用，回退自动路由", "override", override, "error", err)
+			provider, model, est, err = gw.router.Route(messages)
+		}
+	} else {
+		provider, model, est, err = gw.router.Route(messages)
+	}
 	if err != nil {
 		gw.logger.Error("模型路由失败", "error", err)
 		gw.sendReply(msg, "❌ 模型路由失败，请检查配置")

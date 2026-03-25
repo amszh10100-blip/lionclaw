@@ -5,11 +5,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lionclaw/lionclaw/internal/brain"
-	"github.com/lionclaw/lionclaw/internal/channel"
-	"github.com/lionclaw/lionclaw/internal/config"
-	"github.com/lionclaw/lionclaw/internal/scheduler"
-	"github.com/lionclaw/lionclaw/internal/audit"
+	"github.com/amszh10100-blip/lionclaw/internal/brain"
+	"github.com/amszh10100-blip/lionclaw/internal/channel"
+	"github.com/amszh10100-blip/lionclaw/internal/config"
+	"github.com/amszh10100-blip/lionclaw/internal/scheduler"
+	"github.com/amszh10100-blip/lionclaw/internal/audit"
 )
 
 // handleCommand 处理 /命令
@@ -53,6 +53,9 @@ func (gw *Gateway) handleCommand(msg channel.Message) {
 /cost      — 成本统计
 /stats     — 详细统计+节省时间
 /model     — 模型配置
+
+🧠 模型
+/usemodel  — 切换模型 (opus/auto/qwen3:8b)
 
 🔍 记忆
 /search    — 搜索记忆 (如 /search 项目预算)
@@ -125,6 +128,13 @@ func (gw *Gateway) handleCommand(msg channel.Message) {
 
 	case "/clear":
 		gw.cmdClear(msg)
+
+	case "/usemodel":
+		if len(parts) > 1 {
+			gw.cmdUseModel(msg, parts[1])
+		} else {
+			gw.sendReply(msg, "用法: /usemodel <模型名>\n\n可选:\n• auto — 自动路由（默认）\n• opus — Claude Opus 4.6\n• qwen3:8b — 本地小模型\n• qwen3:30b — 本地大模型\n\n当前: "+gw.getCurrentModel(msg.ChatID))
+		}
 
 	case "/route":
 		// 测试路由——显示下一条消息会用什么模型
@@ -481,6 +491,46 @@ func (gw *Gateway) cmdEnableScenario(msg channel.Message, name string, enable bo
 		}
 		gw.sendReply(msg, fmt.Sprintf("⏸ 场景 %s 已停用", name))
 	}
+}
+
+func (gw *Gateway) cmdUseModel(msg channel.Message, model string) {
+	lower := strings.ToLower(model)
+
+	// 别名映射
+	aliases := map[string]string{
+		"auto":    "",
+		"opus":    "claude-opus-4-6",
+		"opus4.6": "claude-opus-4-6",
+		"claude":  "claude-opus-4-6",
+		"small":   "qwen3:8b",
+		"large":   "qwen3:30b",
+	}
+
+	resolved := lower
+	if mapped, ok := aliases[lower]; ok {
+		resolved = mapped
+	}
+
+	gw.mu.Lock()
+	if resolved == "" {
+		delete(gw.modelOverrides, msg.ChatID)
+		gw.mu.Unlock()
+		gw.sendReply(msg, "✅ 已切回自动路由模式\n\n低→qwen3:8b | 中→qwen3:30b | 高→Claude Opus")
+		return
+	}
+	gw.modelOverrides[msg.ChatID] = resolved
+	gw.mu.Unlock()
+
+	gw.sendReply(msg, fmt.Sprintf("✅ 已锁定模型: %s\n\n所有消息将使用此模型，发 /usemodel auto 恢复自动路由", resolved))
+}
+
+func (gw *Gateway) getCurrentModel(chatID string) string {
+	gw.mu.RLock()
+	defer gw.mu.RUnlock()
+	if m, ok := gw.modelOverrides[chatID]; ok && m != "" {
+		return m + " (手动)"
+	}
+	return "auto (自动路由)"
 }
 
 func (gw *Gateway) cmdAudit(msg channel.Message) {

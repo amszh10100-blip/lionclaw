@@ -5,7 +5,7 @@
 ## 快速开始
 
 ```bash
-git clone https://github.com/lionclaw/lionclaw.git
+git clone https://github.com/amszh10100-blip/lionclaw.git
 cd lionclaw
 make build   # 编译
 make test    # 测试

@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/lionclaw/lionclaw/internal/config"
+	"github.com/amszh10100-blip/lionclaw/internal/config"
 )
 
 func newTestRouter() *DefaultRouter {

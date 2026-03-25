@@ -1,4 +1,4 @@
-module github.com/lionclaw/lionclaw
+module github.com/amszh10100-blip/lionclaw
 
 go 1.25.0
 

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/lionclaw/lionclaw/internal/config"
+	"github.com/amszh10100-blip/lionclaw/internal/config"
 )
 
 // DefaultRouter 智能模型路由器
@@ -111,6 +111,39 @@ func (r *DefaultRouter) pickLocal(large bool) (LLMProvider, string, CostEstimate
 		return r.cloud, r.cloudModel, CostEstimate{Model: r.cloudModel, IsLocal: false, EstimatedUSD: 0.05}, nil
 	}
 	return nil, "", CostEstimate{}, fmt.Errorf("无可用模型：本地和云端均未配置")
+}
+
+// RouteToModel 手动路由到指定模型
+func (r *DefaultRouter) RouteToModel(model string) (LLMProvider, string, CostEstimate, error) {
+	lower := strings.ToLower(model)
+
+	// 检查是否为本地模型
+	if r.localSmall != nil {
+		if strings.Contains(lower, r.cfg.Models.Local.Models.Small) {
+			return r.localSmall, r.cfg.Models.Local.Models.Small, CostEstimate{
+				Model: r.cfg.Models.Local.Models.Small, IsLocal: true,
+			}, nil
+		}
+		if strings.Contains(lower, r.cfg.Models.Local.Models.Large) {
+			return r.localLarge, r.cfg.Models.Local.Models.Large, CostEstimate{
+				Model: r.cfg.Models.Local.Models.Large, IsLocal: true,
+			}, nil
+		}
+	}
+
+	// 检查是否为云端模型
+	if r.cloud != nil && strings.Contains(lower, "opus") || strings.Contains(lower, "claude") || strings.Contains(lower, "anthropic") {
+		return r.cloud, r.cloudModel, CostEstimate{
+			Model: r.cloudModel, IsLocal: false, EstimatedUSD: 0.05,
+		}, nil
+	}
+
+	// 尝试直接作为 Ollama 模型名
+	if r.localSmall != nil {
+		return r.localSmall, model, CostEstimate{Model: model, IsLocal: true}, nil
+	}
+
+	return nil, "", CostEstimate{}, fmt.Errorf("模型不可用: %s", model)
 }
 
 func (r *DefaultRouter) containsPrivacyKeywords(text string) bool {

@@ -3,7 +3,7 @@ package updater
 import (
 	"context"
 	"fmt"
-	"github.com/lionclaw/lionclaw/internal/config"
+	"github.com/amszh10100-blip/lionclaw/internal/config"
 	"io"
 	"log/slog"
 	"net/http"

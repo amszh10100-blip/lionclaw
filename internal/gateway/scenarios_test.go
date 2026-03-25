@@ -3,9 +3,9 @@ package gateway
 import (
 	"testing"
 
-	"github.com/lionclaw/lionclaw/internal/channel"
-	"github.com/lionclaw/lionclaw/internal/config"
-	"github.com/lionclaw/lionclaw/internal/memory"
+	"github.com/amszh10100-blip/lionclaw/internal/channel"
+	"github.com/amszh10100-blip/lionclaw/internal/config"
+	"github.com/amszh10100-blip/lionclaw/internal/memory"
 )
 
 func TestGateway_Scenarios(t *testing.T) {

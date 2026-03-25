@@ -37,7 +37,7 @@ mkdir -p "$CONFIG_DIR/memory"
 mkdir -p "$CONFIG_DIR/skills"
 
 # 下载二进制（TODO: 替换为实际下载地址）
-BINARY_URL="https://github.com/lionclaw/lionclaw/releases/download/v${VERSION}/lionclaw-${OS}-${ARCH}"
+BINARY_URL="https://github.com/amszh10100-blip/lionclaw/releases/download/v${VERSION}/lionclaw-${OS}-${ARCH}"
 
 echo "⬇️  下载 LionClaw..."
 if command -v curl &>/dev/null; then

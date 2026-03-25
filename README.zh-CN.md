@@ -22,7 +22,7 @@
 
 ```bash
 # 从源码编译（需要 Go 1.23+）
-git clone https://github.com/lionclaw/lionclaw.git
+git clone https://github.com/amszh10100-blip/lionclaw.git
 cd lionclaw
 make build
 ```

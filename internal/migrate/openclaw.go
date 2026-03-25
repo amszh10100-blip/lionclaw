@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/lionclaw/lionclaw/internal/config"
-	"github.com/lionclaw/lionclaw/internal/memory"
-	"github.com/lionclaw/lionclaw/internal/vault"
+	"github.com/amszh10100-blip/lionclaw/internal/config"
+	"github.com/amszh10100-blip/lionclaw/internal/memory"
+	"github.com/amszh10100-blip/lionclaw/internal/vault"
 )
 
 // Result 迁移结果

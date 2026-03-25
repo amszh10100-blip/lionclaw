@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/lionclaw/lionclaw/internal/config"
+	"github.com/amszh10100-blip/lionclaw/internal/config"
 )
 
 // Score 安全评分项

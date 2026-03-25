@@ -14,13 +14,13 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/lionclaw/lionclaw/internal/brain"
-	"github.com/lionclaw/lionclaw/internal/config"
-	"github.com/lionclaw/lionclaw/internal/gateway"
-	"github.com/lionclaw/lionclaw/internal/migrate"
-	"github.com/lionclaw/lionclaw/internal/scorecard"
-	"github.com/lionclaw/lionclaw/internal/skill"
-	"github.com/lionclaw/lionclaw/internal/vault"
+	"github.com/amszh10100-blip/lionclaw/internal/brain"
+	"github.com/amszh10100-blip/lionclaw/internal/config"
+	"github.com/amszh10100-blip/lionclaw/internal/gateway"
+	"github.com/amszh10100-blip/lionclaw/internal/migrate"
+	"github.com/amszh10100-blip/lionclaw/internal/scorecard"
+	"github.com/amszh10100-blip/lionclaw/internal/skill"
+	"github.com/amszh10100-blip/lionclaw/internal/vault"
 )
 
 var version = "dev"
